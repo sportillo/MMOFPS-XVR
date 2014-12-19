@@ -1,0 +1,279 @@
+#include <Bullet.s3d>
+
+SET ANGLE_STEP	= 1;
+SET START_FRAME = 16;
+SET END_FRAME 	= 48;
+SET MAX_BULLET  = 5;
+SET MAX_LIFE    = 10;
+
+class Player
+{
+	var id;
+	var color;
+	var position;
+	var direction;
+	var angle;	
+	var CurrentFrame;
+	var upperMesh, lowerMesh;
+	var upperObj,  lowerObj;
+	var rootObj;
+	var weaponMesh, weaponObj;
+	var moving;
+	var Bullets;
+	var iB;
+	var score;
+	var fire_billboard;
+	var fire_obj;
+	var hit;
+	var fx_hit;
+	var fx_shoot;
+	var can_shoot;
+	Draw();
+	Scored();
+	Hitted();
+	Update(level);
+	
+	GetPosition();
+	GetDirection();
+	GetAngle();
+	GetBullets();
+	GetScore();
+	GetID();
+	GetColor();
+	
+	SetAngle(ang);
+};
+
+function Player::SetAngle(ang)
+{
+	angle = ang;
+}
+
+function Player::Hitted()
+{
+	hit += 10;
+	fx_hit.play();
+}
+
+function Player::GetColor()
+{
+	return color;
+}
+
+function Player::GetID()
+{
+	return id;
+}
+
+function Player::GetScore()
+{
+	return score;
+}
+
+function Player::Scored()
+{
+	score++;
+}
+
+function Player::GetBullets()
+{
+	return Bullets;
+}
+
+function Player::GetPosition()
+{
+	return position;
+}
+
+function Player::GetDirection()
+{
+	return direction;
+}
+
+function Player::GetAngle()
+{
+	return angle*GRAD_TO_RAD;
+}
+
+function Player::Player(p_id, p_color, p_pos)
+{
+	position     = p_pos;
+	id 			 = p_id;
+	color		 = p_color; 
+	iB			 = 0;
+	score		 = 0;
+	hit			 = 0;
+	var step     = 0.1;
+	angle     	 = 0;
+	CurrentFrame = START_FRAME;
+	fx_hit		 = CVmVRAWav("hit.wav", true);
+	fx_shoot	 = CVmVRAWav("shoot.wav", true);
+	var sound_pos = position + [0, 1, 0];
+	fx_hit.SetPosition(sound_pos);
+	
+	Bullets      = array(MAX_BULLET);
+	
+	for (var i=0; i<MAX_BULLET; i++)
+		Bullets[i] = Bullet(color);
+	
+	upperMesh = CVmNewMesh("swat_upper.aam");
+	lowerMesh = CVmNewMesh("swat_lower.aam");
+	weaponMesh = CVmNewMesh("railgun.aam");
+	fire_billboard = CVmBillboard("flame43.avi", 0.5, 0.5);
+		
+	upperMesh.Scale(0.04);
+	lowerMesh.Scale(0.04);
+	weaponMesh.Scale(0.04);
+	
+	upperObj = CVmObj(upperMesh);
+	lowerObj = CVmObj(lowerMesh);
+	weaponObj = CVmObj(weaponMesh);
+	fire_obj = CVmObj();
+	
+	fire_obj.LinkToBillboard(fire_billboard);
+	fire_obj.SetPosition(position);
+	
+	rootObj = CVmObj();
+	rootObj.addChild(upperObj);
+	rootObj.addChild(lowerObj);
+	rootObj.addChild(weaponObj);
+	
+	rootObj.modulateMaterials(color);
+}
+
+function Player::Draw()
+{
+	rootObj.Draw(VR_FRAMENUMBER, CurrentFrame);
+	foreach (var b in Bullets)
+		b.Draw();
+	
+	if(hit > 0)
+	{
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+		glColor(1, 1, 1);
+		glDisable(GL_DEPTH_TEST);
+		fire_obj.Draw();
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_DEPTH_TEST);
+		hit--;
+	}
+}
+
+function Player::Update(level)
+{
+
+	var step     = 0.05;
+	var animStep = 0.5;
+	var oldposition = position;
+	moving 	 	 = 0;
+	direction = [sin(angle*GRAD_TO_RAD), 0, cos(angle*GRAD_TO_RAD)];
+	
+	if(id == 0){
+
+	if( KeyPressed(VK_SHIFT) ){
+		step *= 3;
+		animStep *= 2;
+	}
+	
+	if( KeyPressed(VK_RIGHT))
+		angle -= ANGLE_STEP;
+		
+	if( KeyPressed(VK_LEFT))
+		angle += ANGLE_STEP;
+		
+	if( KeyPressed(VK_UP) )
+	{
+		position += step * direction;
+		CurrentFrame = (CurrentFrame+animStep);
+		moving = 1;
+
+	}
+	if( KeyPressed(VK_DOWN) )
+	{
+		position -= step * direction;
+		CurrentFrame = (CurrentFrame-animStep);
+		moving = 1;
+	}
+	
+	if( KeyPressed(VK_TAB) )
+	{
+		ib = 0;
+	}
+	
+	if( Mouse.ButtonL && can_shoot)
+	{
+		if( ib < MAX_BULLET) 
+		{
+			Bullets[iB].shoot(position, direction);
+			iB ++;	
+			fx_shoot.play();
+		}
+		can_shoot = false;
+	} else if(!Mouse.ButtonL){
+		can_shoot = true;
+	}
+		
+	}else if (id == 1){
+		if( KeyPressed(VK_SHIFT) ){
+			step *= 3;
+			animStep *= 2;
+		}
+	
+	if( KeyPressed("d"))
+		angle -= ANGLE_STEP;
+		
+	if( KeyPressed("a"))
+		angle += ANGLE_STEP;
+		
+	if( KeyPressed("w") )
+	{
+		position += step * direction;
+		CurrentFrame = (CurrentFrame+animStep);
+		moving = 1;
+
+	}
+	if( KeyPressed("s") )
+	{
+		position -= step * direction;
+		CurrentFrame = (CurrentFrame-animStep);
+		moving = 1;
+	}
+	
+	if( Mouse.ButtonR && can_shoot)
+	{
+		Bullets[iB].shoot(position, direction);
+		fx_shoot.play();
+		iB = (iB+1)%100;
+		can_shoot = false;
+	} else if(!Mouse.ButtonR) {
+		can_shoot = true;
+	}
+		
+	}
+
+	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
+	if(CurrentFrame < START_FRAME) CurrentFrame = END_FRAME;
+	
+	if(moving == 0) CurrentFrame = 0;
+	
+	var i = int(position.x);
+	var j = int(position.z);
+	
+	if(level.GetWallMatrix()[i][j] == 1)
+		position = oldposition;
+		
+	var sound_pos = position + [0, 1, 0];
+	fx_hit.SetPosition(sound_pos);
+		
+	rootObj.SetPosition(position);
+	rootObj.SetRotation(angle, [0, 1, 0]);
+	fire_obj.SetPosition(position + [0, 1, 0]);
+	
+	foreach (var b in Bullets)
+	{
+		b.Update(level);
+	}
+}
