@@ -1,8 +1,8 @@
 /* Include s3d symbols */
 #include <Script3d.h>
 #include <Camera.s3d.h>
-#include <Player.s3d>
-#include <Level.s3d>
+#include <Swat.s3d>
+#include <Scenario.s3d>
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
@@ -10,160 +10,96 @@ SET SCENE_NEAR = 0.5;
 SET SCENE_FAR  = 100;
 SET AUDIO_OPENAL = 1;
 
-// TODO: put your global variables here
 /* Camera globals */
 var CamPos = [0.0, 5.0, 30.0]; 	// camera position
+
 /* Light globals */
 var Light0;
 var PosL = [0.0, 10.0, 10.0];	// default light position
-var id = 0;
-var level1;
-var Player1;
+
+/* Game globals */
+var Player;
+var PlayerId = -1; /* start with an invalid ID */
+
+var Level;
+var Enemies;
 
 /* Function declarations */
-function CameraMoveMouse();
-function DrawGrid(col, size);
+
 
 function OnDownload()
 {
+	/* Extract game files */
 	FileDownload("XVRResources.zip");
 }
 
 
 function OnInit(params)
 {
-	/* initialize camera */
+	/* Initialize camera */
 	CameraGetCurrent().SetPosition(CamPos);
 
-	/* initialize light */
+	/* Initialize light */
 	Light0 = CVmLight();
 	Light0.SetPosition(PosL);
 	Light0.SetDiffuse(1, 1, 1);
 	Light0.Enable();
 
-	// TODO: put your initialization code here
-	level1 = Level();
-	level1.Init("level.txt");
+	/* Initialize scenario */
+	Level = Scenario();
+	Level.Init("level.txt");
 	
-	level1.addPlayer([1, 0, 0], [5, 0, 5]);
-	level1.addPlayer([0, 1, 0], [5, 0, 10]);
-	//Oculus_OnInit();
-
+	/* Initialize player */
+	Player = Swat(PlayerId, [1,0,0], [5,0,5], 1);
 }
 
-function DrawScore()
-{
-	ConsoleFont("Arial", 14);
-	foreach(var p in level1.GetPlayers())
-	{
-		var text = "[" + str(p.GetID()) + "] Score: " + str(p.GetScore());
-		ConsoleColor(p.GetColor());
-		ConsoleText(0.01, p.GetID()*0.04, text);
-	}
-}
 
 function OnFrame()
 {
+	/* Update player */
+	Player.Update(Level);
 	
-	/* manage camera */
-	level1.Update();
-	//CameraMoveMouse();
-	if( KeyPressed("1"))
-		id = 0;
-	if( KeyPressed("2"))
-		id = 1;
-	var players = level1.GetPlayers();
-	var player = players[id];
-	//p.z -= 2*cos(player.GetAngle());
-	//p.x -= 2*sin(player.GetAngle());
-
-	var p = player.GetPosition();
-	var d = player.GetDirection();
-	p.y = 1.5;
+	/* Update camera */
+	var p = Player.Position; p.y = 1.5;
+	var d = Player.Direction;
 	
 	CameraGetCurrent().SetPosition(p);
 	CameraGetCurrent().SetDirection(d);
-	level1.GetFX().SetListenerPosition(p);
+//	Level.GetFX().SetListenerPosition(p);
 	var cam_z_axis = CameraGetCurrent().GetZAxis(); 
 	var cam_y_axis = CameraGetCurrent().GetYAxis();
-	level1.GetFX().SetListenerOrientation(cam_z_axis, cam_y_axis);
+//	Level.GetFX().SetListenerOrientation(cam_z_axis, cam_y_axis);
 	 
+	/* Update lights */
 	Light0.SetPosition(p);
+	
+	/* Draw scene */
 	SceneBegin();
 
-	DrawGrid([0.5, 0.5, 0.5], 100);
-	level1.Draw();
-	//Player1.Draw();
-
-	// TODO: put your drawing code here
+	Level.Draw();
+	Player.Draw();
 
 	SceneEnd();
-	DrawScore();
 }
 
 
 
 function DownloadReady(RequestID)
 {
-	// TODO
 }
-
-
 
 function OnTimer()
 {
-	// TODO:
 }
 
-
-function OnEvent(eventID, wparam, lparam){
-	// TODO: put your events handling code here
+function OnEvent(eventID, wparam, lparam)
+{
 }
 
-function OnError(){
-	// TODO: put your errors handling code here
+function OnError()
+{
 }
 
 function OnExit()
 {
-	// TODO: put your cleanup code here
-}
-
-
-
-// Camera manager (using mouse)
-function CameraMoveMouse()
-{	
-
-	CameraMoveMouse_MBL_LC();
-
-}
-
-
-
-function DrawGrid(col, size)
-{
-	/* let's not mess up current OpenGL status */
-	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
-	
-	glLineWidth(1);
-	glDisable(GL_LIGHTING);
-	glColor(col);
-	var max = size / 2.0;
-	var min = -max;	
-	var step = size / 10.0;
-	
-	glBegin(GL_LINES);
-		for (var i = min; i <= max; i += step)
-		{
-			glVertex(i, 0, max);
-			glVertex(i, 0, min);
-			
-			glVertex(max, 0, i);
-			glVertex(min, 0, i);
-		}
-	glEnd();
-	
-	/* polite restoration of previous OpenGL status */
-	glPopAttrib();
 }

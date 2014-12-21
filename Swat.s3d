@@ -1,0 +1,244 @@
+#include <Bullet.s3d>
+
+SET ANGLE_STEP	= 1;
+SET START_FRAME = 16;
+SET END_FRAME 	= 48;
+SET MAX_BULLET  = 5;
+SET MAX_LIFE    = 10;
+
+class Swat
+{
+// Private:
+	var RootObj;
+	var UpperMesh,  UpperObj;
+	var LowerMesh,  LowerObj;
+	var WeaponMesh, WeaponObj;
+	var CurrentFrame;
+	
+	var BulletNum;
+	var Bullets;
+	
+	var FX_Hit;
+	var FX_Shoot;
+	var FireBillboard, FireObj;
+	var HitCounter;
+
+// Public:
+	var Id;
+	var Color;
+	var Position;
+	var Direction;
+	var Angle;	   /* in GRAD */
+	var Score;
+	var IsMoving;
+	var CanShoot;
+	var IsLocal;
+	
+
+	Update(level);
+	Draw();
+	
+	ParseKeyboard(level);
+	ParseNetwork(level);
+	
+	Scored();
+	Hit();
+};
+
+
+function Swat::Swat(p_id, p_color, p_pos, p_local)
+{
+	/* Initialize player variables */
+	Id 			 = p_id;
+	Color		 = p_color;
+	Position     = p_pos;
+	Direction    = [0, 0, 0];
+	Angle     	 = 0;
+	Score		 = 0;
+	IsMoving     = 0;
+	IsLocal      = p_local;
+	
+	/* Initialize bullets */
+	BulletNum    = 0;
+	Bullets      = array(MAX_BULLET);
+	
+	for (var i = 0; i < MAX_BULLET; i++)
+		Bullets[i] = Bullet(Color);
+	
+	/* Initialize effects */
+	FX_Hit        = CVmVRAWav("hit.wav", true);
+	FX_Shoot      = CVmVRAWav("shoot.wav", true);
+	FireBillboard = CVmBillboard("flame43.avi", 0.5, 0.5);
+	FireObj       = CVmObj();
+	HitCounter    = 0;
+	
+	FireObj.LinkToBillboard(FireBillboard);
+	FireObj.SetPosition(Position);
+	
+	var sound_pos = Position + [0, 1, 0];
+	FX_Hit.SetPosition(sound_pos);
+	
+	/* Initialize animations */
+	CurrentFrame = START_FRAME;
+	
+	/* Initialize meshes */
+	UpperMesh  = CVmNewMesh("swat_upper.aam");
+	LowerMesh  = CVmNewMesh("swat_lower.aam");
+	WeaponMesh = CVmNewMesh("railgun.aam");
+		
+	UpperMesh.Scale(0.04);
+	LowerMesh.Scale(0.04);
+	WeaponMesh.Scale(0.04);
+	
+	/* Initialize objects */
+	UpperObj  = CVmObj(upperMesh);
+	LowerObj  = CVmObj(lowerMesh);
+	WeaponObj = CVmObj(weaponMesh);
+	
+	RootObj = CVmObj();
+	RootObj.AddChild(UpperObj);
+	RootObj.AddChild(LowerObj);
+	RootObj.AddChild(WeaponObj);
+	
+	RootObj.ModulateMaterials(Color);
+}
+
+
+function Swat::Draw()
+{
+	/* Draw player */
+	RootObj.Draw(VR_FRAMENUMBER, CurrentFrame);
+	foreach (var b in Bullets)
+		b.Draw();
+	
+	/* Draw hit effect */
+	if(HitCounter > 0)
+	{
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+		glColor(1, 1, 1);
+		glDisable(GL_DEPTH_TEST);
+		FireObj.Draw();
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_DEPTH_TEST);
+		HitCounter--;
+	}
+}
+
+
+function Swat::Update(level)
+{
+	/* Parse new events */
+	if (IsLocal == 1)
+		ParseKeyboard(level);
+	else
+		ParseNetwork(level);
+
+	/* Update animation */
+	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
+	if(CurrentFrame < START_FRAME) CurrentFrame = END_FRAME;
+	
+	if(IsMoving == 0) CurrentFrame = 0;
+	
+	/* Update player position */
+	RootObj.SetPosition(Position);
+	RootObj.SetRotation(Angle, [0, 1, 0]);
+		
+	/* Update FX position */
+	var sound_pos = Position + [0, 1, 0];
+	FX_Hit.SetPosition(sound_pos);
+	FireObj.SetPosition(Position + [0, 1, 0]);
+	
+	/* Update bullets */
+	foreach (var b in Bullets)
+		b.Update(level);
+}
+
+
+function Swat::Hit()
+{
+	HitCounter += 10;
+	FX_Hit.Play();
+}
+
+
+function Swat::Scored()
+{
+	Score++;
+}
+
+
+function Swat::ParseKeyboard(level)
+{
+	var step        = 0.05;
+	var animStep    = 0.5;
+	var oldPosition = Position;
+	
+	IsMoving  = 0;
+	Direction = [ sin(Angle * GRAD_TO_RAD),
+				  0,
+				  cos(Angle * GRAD_TO_RAD) ];
+	
+	/* Shift: run */
+	if (KeyPressed(VK_SHIFT))
+	{
+		step *= 3;
+		animStep *= 2;
+	}
+	
+	/* Turn right */
+	if (KeyPressed("D"))
+		Angle -= ANGLE_STEP;
+		
+	/* Turn left */
+	if (KeyPressed("A"))
+		Angle += ANGLE_STEP;
+		
+	/* Go forward */
+	if (KeyPressed("W"))
+	{
+		Position += step * Direction;
+		CurrentFrame += animStep;
+		IsMoving = 1;
+	}
+	
+	/* Go backward */
+	if (KeyPressed("S"))
+	{
+		Position -= step * Direction;
+		CurrentFrame -= animStep;
+		IsMoving = 1;
+	}
+	
+	/* Reload */
+	if (KeyPressed("R"))
+	{
+		BulletNum = 0;
+	}
+	
+	/* Shoot */
+	if (Mouse.ButtonL && CanShoot)
+	{
+		if (BulletNum < MAX_BULLET) 
+		{
+			Bullets[BulletNum].Shoot(Position, Direction);
+			BulletNum++;	
+			FX_Shoot.Play();
+		}
+		
+		CanShoot = false;
+	}
+	else if (!Mouse.ButtonL)
+	{
+		CanShoot = true;
+	}
+	
+	/* Check collision */
+	var i = int(Position.x);
+	var j = int(Position.z);
+	
+	if (level.IsColliding(i, j) == 1)
+		Position = oldPosition;
+}

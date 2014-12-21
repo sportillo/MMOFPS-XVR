@@ -1,72 +1,76 @@
+SET BULLET_SPEED = 0.5;
+
 class Bullet
 {
-	var	position;
-	var direction;
-	var mesh, obj;
-	var speed;
-	var flying;
-	var color;
+// Private:
+	var BulletMesh, BulletObj;
+	
+// Public:
+	var Color;
+	var	Position;
+	var Direction;
+	var Speed;
+	var IsFlying;
+	
+	
 	Update(level);
 	Draw();
+	
 	Shoot(pos, dir);
-	GetPosition();
-	GetFlying();
-	SetFlying(state);
 };
 
-function Bullet::GetFlying()
-{
-	return flying;
-}
-
-function Bullet::SetFlying(state)
-{
-	flying = state;
-}
-
-function Bullet::GetPosition()
-{
-	return position;
-}
 
 function Bullet::Bullet(col)
 {
-	color = col;
-	mesh  = CVmNewMesh(VRP_BOX);
-	mesh.Normalize(0.1);
-	obj = CVmObj(mesh);
-	mesh.modulateMaterials(color);
-	flying = false;
-	speed = 0.5;
+	/* Initialize bullet variables */
+	Color     = col;
+	Position  = [0, 0, 0];
+	Direction = [0, 0, 0];
+	Speed     = BULLET_SPEED;
+	IsFlying  = false;
+
+	/* Initialize mesh */
+	BulletMesh = CVmNewMesh(VRP_BOX);
+	BulletObj  = CVmObj(BulletMesh);
+	
+	BulletMesh.Normalize(0.1);
+	BulletMesh.ModulateMaterials(Color);
+
 }
+
 
 function Bullet::Shoot(pos, dir)
 {
-	position  = pos;
-	direction = dir;
-	flying = true;
+	Position  = pos; Position.y = 1;
+	Direction = dir;
+	IsFlying  = true;
 }
+
 
 function Bullet::Update(level)
 {
-	var oldposition = position;
-	if (flying)
+	var oldPosition = Position;
+	
+	if (IsFlying)
 	{
-		position += direction * speed;
-		position.y = 1;
-			
+		/* Update position */
+		Position += Direction * Speed;
+		
+		/* Check collision */
 		var i = int(position.x);
 		var j = int(position.z);
 		
-		if(level.GetWallMatrix()[i][j] == 1)
-			flying = false;
+		if(level.IsColliding(i, j) == 1)
+			IsFlying = false;
 		else
-		   obj.SetPosition(position);
+			BulletObj.SetPosition(Position);
 	}
 }
 
+
 function Bullet::Draw()
 {
-	if(flying)
-		obj.Draw();
+	/* Draw bullet */
+	if(IsFlying)
+		BulletObj.Draw();
 }

@@ -1,0 +1,119 @@
+class Scenario
+{
+// Private:
+	var FloorMesh, FloorObj;
+	var FloorMaterial, FloorTexture;
+	var WallMesh, WallObj;
+	var WallMaterial, WallTexture;
+	var Walls;
+	
+// Public:
+	Init(filename);
+	Draw();
+	
+	IsColliding(x, z);
+};
+
+function Scenario::Init(filename)
+{
+	/* Load scenario file */
+	var data = LoadFile(filename);
+	var height = len(data) - 1;
+	var width = len(data[0]);
+	
+	/* Initialize wall data structure */
+	Walls = array(height);
+	for (var i = 0; i < height; i++)
+		Walls[i] = array(width);
+	
+	/* Initialize materials */
+	WallMaterial  = CVmMaterial();
+	FloorMaterial = CVmMaterial();
+	WallTexture  = CVmTexture("Mattoni03.png");
+	FloorTexture = CVmTexture("Marmostriato2.png");
+	
+	WallMaterial.Diffuse = [1, 1, 1];
+	WallMaterial.SetTexture(WallTexture);
+	FloorMaterial.Diffuse = [1, 1, 1];
+	FloorMaterial.SetTexture(FloorTexture);
+	WallMaterial.ChangeTextureParams(VR_V_TILING, 3);
+	
+	/* Initialize meshes */
+	WallMesh = CVmNewMesh(VRP_BOX);
+	FloorMesh = CVmNewMesh(VRP_BOX);
+	
+	/* Position floor */
+	FloorMesh.Translate(0, -1,  0);
+	FloorMesh.Scale(width, 1, height);
+	
+	/* Apply materials */
+	WallMesh.Scale(1, 3, 1);
+	WallMesh.ForceMaterial(WallMaterial);
+	FloorMesh.ForceMaterial(FloorMaterial);
+	FloorMesh.ModulateMaterials(0, 1, 0, 1);
+	
+	/* Initialize objects */
+	WallObj = array(0);
+	FloorObj = CVmObj(FloorMesh);
+	
+	/* Parse level file */
+	for(var i = 0; i < height; i++)
+		for (var j = 0; j < width; j++)
+		{
+			if(data[i][j] == "*")
+			{
+				/* Add wall piece */
+				var wall = CVmObj();
+				wall.LinkToMesh(WallMesh);
+				wall.SetPosition(i, 0, j);
+				aadd(WallObj, wall);
+				Walls[i][j] = 1;
+			} 
+			else
+				Walls[i][j] = 0;
+		}
+}
+
+//function Scenario::Update()
+//{
+//	foreach (var p in playersArray)
+//		p.Update(this);
+//		
+//	foreach (var p in playersArray)
+//	{
+//		foreach ( var b in p.GetBullets())
+//		{
+//			if(b.GetFlying() == true)
+//			{
+//				foreach (var q in PlayersArray)
+//				{
+//					if(p!=q)
+//					{
+//						if(distance(q.GetPosition(),b.GetPosition()) < 0.3)
+//						{
+//							b.SetFlying(false);
+//							p.Scored();
+//							q.Hitted();
+//							//outputln("Player ", p.GetID(), " score: ", p.GetScore());
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
+
+function Scenario::IsColliding(x, z)
+{
+	return Walls[x][z];
+}
+
+function Scenario::Draw()
+{
+	/* Draw floor */
+	FloorObj.Draw();
+	
+	/* Draw walls */
+	foreach (var w in WallObj)
+		w.Draw();
+}
