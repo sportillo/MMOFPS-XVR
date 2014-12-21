@@ -32,10 +32,10 @@ function RandomPos()
 {
 	while (true)
 	{
-		var x = Rand(Level.Width);
-		var z = Rand(Level.Height);
+		var x = Rand(Level.Width - 1) + 0.5;
+		var z = Rand(Level.Height - 1) + 0.5;
 		
-		if (!Level.IsColliding(x, z))
+		if (!Level.IsColliding(x, z, 0))
 			return [x, 0, z];
 	}
 }
@@ -65,7 +65,7 @@ function OnInit(params)
 	
 	/* Initialize player */
 	Player = Swat(PlayerId, [1,0,0], [5,0,5], true);
-	Player.Position.x_z = RandomPos() + [0.5, 0, 0.5];
+	Player.Position.x_z = RandomPos();
 }
 
 

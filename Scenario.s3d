@@ -14,7 +14,7 @@ class Scenario
 	Init(filename);
 	Draw();
 	
-	IsColliding(x, z);
+	IsColliding(x, z, radius);
 };
 
 function Scenario::Init(filename)
@@ -106,9 +106,19 @@ function Scenario::Init(filename)
 //	}
 //}
 
-function Scenario::IsColliding(x, z)
+function Scenario::IsColliding(x, z, radius)
 {
-	if (Walls[z][x] == 1)
+	var center = [x, 0, z];
+	
+	var a = [int(center.x + radius), 0, int(center.z + radius)];
+	var b = [int(center.x - radius), 0, int(center.z + radius)];
+	var c = [int(center.x - radius), 0, int(center.z - radius)];
+	var d = [int(center.x + radius), 0, int(center.z - radius)];
+	
+	if (Walls[a.z][a.x] == 1 ||
+		Walls[b.z][b.x] == 1 ||
+		Walls[c.z][c.x] == 1 ||
+		Walls[d.z][d.x] == 1)
 		return true;
 	else
 		return false;

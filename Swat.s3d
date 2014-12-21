@@ -241,6 +241,6 @@ function Swat::ParseKeyboard(level)
 	var i = int(Position.x);
 	var j = int(Position.z);
 	
-	if (level.IsColliding(i, j))
+	if (level.IsColliding(Position.x, Position.z, 0.3))
 		Position = oldPosition;
 }
