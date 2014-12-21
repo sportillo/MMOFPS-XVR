@@ -60,7 +60,7 @@ function Bullet::Update(level)
 		var i = int(position.x);
 		var j = int(position.z);
 		
-		if(level.IsColliding(i, j) == 1)
+		if(level.IsColliding(i, j))
 			IsFlying = false;
 		else
 			BulletObj.SetPosition(Position);

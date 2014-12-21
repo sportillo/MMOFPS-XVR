@@ -50,7 +50,7 @@ function OnInit(params)
 	Level.Init("level.txt");
 	
 	/* Initialize player */
-	Player = Swat(PlayerId, [1,0,0], [5,0,5], 1);
+	Player = Swat(PlayerId, [1,0,0], [5,0,5], true);
 }
 
 

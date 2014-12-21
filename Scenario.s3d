@@ -105,7 +105,10 @@ function Scenario::Init(filename)
 
 function Scenario::IsColliding(x, z)
 {
-	return Walls[x][z];
+	if (Walls[x][z] == 1)
+		return true;
+	else
+		return false;
 }
 
 function Scenario::Draw()

@@ -55,7 +55,8 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Direction    = [0, 0, 0];
 	Angle     	 = 0;
 	Score		 = 0;
-	IsMoving     = 0;
+	IsMoving     = false;
+	CanShoot     = true;
 	IsLocal      = p_local;
 	
 	/* Initialize bullets */
@@ -131,7 +132,7 @@ function Swat::Draw()
 function Swat::Update(level)
 {
 	/* Parse new events */
-	if (IsLocal == 1)
+	if (IsLocal)
 		ParseKeyboard(level);
 	else
 		ParseNetwork(level);
@@ -140,7 +141,8 @@ function Swat::Update(level)
 	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
 	if(CurrentFrame < START_FRAME) CurrentFrame = END_FRAME;
 	
-	if(IsMoving == 0) CurrentFrame = 0;
+	if(!IsMoving)
+		CurrentFrame = 0;
 	
 	/* Update player position */
 	RootObj.SetPosition(Position);
@@ -176,7 +178,7 @@ function Swat::ParseKeyboard(level)
 	var animStep    = 0.5;
 	var oldPosition = Position;
 	
-	IsMoving  = 0;
+	IsMoving  = false;
 	Direction = [ sin(Angle * GRAD_TO_RAD),
 				  0,
 				  cos(Angle * GRAD_TO_RAD) ];
@@ -201,7 +203,7 @@ function Swat::ParseKeyboard(level)
 	{
 		Position += step * Direction;
 		CurrentFrame += animStep;
-		IsMoving = 1;
+		IsMoving = true;
 	}
 	
 	/* Go backward */
@@ -209,7 +211,7 @@ function Swat::ParseKeyboard(level)
 	{
 		Position -= step * Direction;
 		CurrentFrame -= animStep;
-		IsMoving = 1;
+		IsMoving = true;
 	}
 	
 	/* Reload */
@@ -239,6 +241,6 @@ function Swat::ParseKeyboard(level)
 	var i = int(Position.x);
 	var j = int(Position.z);
 	
-	if (level.IsColliding(i, j) == 1)
+	if (level.IsColliding(i, j))
 		Position = oldPosition;
 }
