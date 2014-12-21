@@ -238,9 +238,12 @@ function Swat::ParseKeyboard(level)
 	}
 	
 	/* Check collision */
-	var i = int(Position.x);
-	var j = int(Position.z);
-	
 	if (level.IsColliding(Position.x, Position.z, 0.3))
 		Position = oldPosition;
+}
+
+
+function Swat::ParseNetwork(level)
+{
+	
 }

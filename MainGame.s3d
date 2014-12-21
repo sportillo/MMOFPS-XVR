@@ -26,6 +26,7 @@ var Enemies;
 
 /* Function declarations */
 function RandomPos();
+function DisplayScoreboard();
 
 
 function RandomPos()
@@ -37,6 +38,30 @@ function RandomPos()
 		
 		if (!Level.IsColliding(x, z, 0))
 			return [x, 0, z];
+	}
+}
+
+
+function DisplayScoreboard()
+{
+	var x = 0.05, y = 0.9;
+	var i = 0;
+	
+	ConsoleFont("Tahoma", 20);
+	
+	ConsoleColor(Player.Color);
+	ConsoleText(x, y, "Player:\t\t" + str(Player.Score));
+	
+	y -= 0.025;
+	ConsoleLines([x, y, x + 0.3, y]);
+	
+	foreach (var e in Enemies)
+	{
+		y -= 0.05;
+		i++;
+		
+		ConsoleColor(e.Color);
+		ConsoleText(x, y, "Enemy " + str(i) + ":\t" + str(e.Score));
 	}
 }
 
@@ -64,15 +89,29 @@ function OnInit(params)
 	Level.Init("level.txt");
 	
 	/* Initialize player */
-	Player = Swat(PlayerId, [1,0,0], [5,0,5], true);
-	Player.Position.x_z = RandomPos();
+	Player = Swat(PlayerId, [1,0,0], RandomPos(), true);
+	
+	/* Initialize enemies */
+	Enemies = Array(0);
+	
+	/* DEBUG: add dummies */
+	aadd(Enemies, Swat(1, [0,1,0], RandomPos(), false));
+	aadd(Enemies, Swat(2, [0,0,1], RandomPos(), false));
 }
 
 
 function OnFrame()
 {
+	/* Parse commands */
+	if (KeyPressed(VK_TAB))
+		DisplayScoreboard();
+	
 	/* Update player */
 	Player.Update(Level);
+	
+	/* Update enemies */
+	foreach (var e in Enemies)
+		e.Update(Level);
 	
 	/* Update camera */
 	var p = Player.Position; p.y = 1.5;
@@ -93,6 +132,10 @@ function OnFrame()
 
 	Level.Draw();
 	Player.Draw();
+	
+	/* Update enemies */
+	foreach (var e in Enemies)
+		e.Draw();
 
 	SceneEnd();
 }

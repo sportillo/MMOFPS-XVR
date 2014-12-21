@@ -57,9 +57,6 @@ function Bullet::Update(level)
 		Position += Direction * Speed;
 		
 		/* Check collision */
-		var i = int(position.x);
-		var j = int(position.z);
-		
 		if(level.IsColliding(Position.x, Position.z, 0.1))
 			IsFlying = false;
 		else
