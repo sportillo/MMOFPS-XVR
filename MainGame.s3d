@@ -6,7 +6,7 @@
 
 /* Set global scene parameters */
 SET SCENE_FOV  = 60;
-SET SCENE_NEAR = 0.5;
+SET SCENE_NEAR = 0.25;
 SET SCENE_FAR  = 100;
 SET AUDIO_OPENAL = 1;
 
@@ -25,6 +25,20 @@ var Level;
 var Enemies;
 
 /* Function declarations */
+function RandomPos();
+
+
+function RandomPos()
+{
+	while (true)
+	{
+		var x = Rand(Level.Width);
+		var z = Rand(Level.Height);
+		
+		if (!Level.IsColliding(x, z))
+			return [x, 0, z];
+	}
+}
 
 
 function OnDownload()
@@ -51,6 +65,7 @@ function OnInit(params)
 	
 	/* Initialize player */
 	Player = Swat(PlayerId, [1,0,0], [5,0,5], true);
+	Player.Position.x_z = RandomPos() + [0.5, 0, 0.5];
 }
 
 

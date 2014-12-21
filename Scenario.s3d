@@ -8,6 +8,9 @@ class Scenario
 	var Walls;
 	
 // Public:
+	var Width;
+	var Height;
+
 	Init(filename);
 	Draw();
 	
@@ -18,8 +21,8 @@ function Scenario::Init(filename)
 {
 	/* Load scenario file */
 	var data = LoadFile(filename);
-	var height = len(data) - 1;
-	var width = len(data[0]);
+	Height = len(data) - 1;
+	Width = len(data[0]);
 	
 	/* Initialize wall data structure */
 	Walls = array(height);
@@ -65,7 +68,7 @@ function Scenario::Init(filename)
 				/* Add wall piece */
 				var wall = CVmObj();
 				wall.LinkToMesh(WallMesh);
-				wall.SetPosition(i, 0, j);
+				wall.SetPosition(j, 0, i);
 				aadd(WallObj, wall);
 				Walls[i][j] = 1;
 			} 
@@ -105,7 +108,7 @@ function Scenario::Init(filename)
 
 function Scenario::IsColliding(x, z)
 {
-	if (Walls[x][z] == 1)
+	if (Walls[z][x] == 1)
 		return true;
 	else
 		return false;
