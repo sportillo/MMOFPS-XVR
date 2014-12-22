@@ -28,6 +28,7 @@ var Level;
 function RandomPos();
 function CameraUpdate();
 function DisplayScoreboard();
+function DisplayStatus();
 
 
 function RandomPos()
@@ -90,6 +91,17 @@ function DisplayScoreboard()
 }
 
 
+function DisplayStatus()
+{
+	var p = Level.Player;
+	
+	ConsoleFont("Tahoma", 20);
+	ConsoleColor([1, 1, 0]);
+	
+	ConsoleText(0.05, 0.05, str(p.ClipCurrent) + " / " + str(p.ClipRemaining));
+}
+
+
 function OnDownload()
 {
 	/* Extract game files */
@@ -143,6 +155,9 @@ function OnFrame()
 	
 	/* Update camera */
 	CameraUpdate();
+	
+	/* Show status */
+	DisplayStatus();
 	 
 	/* Update lights */
 	//Light0.SetPosition(Level.Player.Position);

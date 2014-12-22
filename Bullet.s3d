@@ -35,7 +35,6 @@ function Bullet::Bullet(col)
 	
 	BulletMesh.Normalize(0.1);
 	BulletMesh.ModulateMaterials(Color);
-
 }
 
 

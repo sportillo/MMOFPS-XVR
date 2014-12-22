@@ -134,29 +134,6 @@ function Scenario::Update()
 				e.Hit();
 				outputln("Player ", Player.ID, " hit Player ", e.ID);
 			}
-	
-//	foreach (var p in Players)
-//	{
-//		foreach ( var b in p.Bullets)
-//		{
-//			if(b.IsFlying)
-//			{
-//				foreach (var q in Players)
-//				{
-//					if(p != q)
-//					{
-//						if(distance(q.Position, b.Position) < 0.3)
-//						{
-//							b.IsFlying = false;
-//							p.Scored();
-//							q.Hit();
-//							outputln("Player ", p.ID, " hit Player ", q.ID);
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
 }
 
 function Scenario::IsColliding(x, z, radius)

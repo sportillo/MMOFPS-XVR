@@ -32,6 +32,7 @@ class Swat
 	var Score;
 	var ClipCurrent, ClipRemaining;
 	var IsMoving;
+	var IsReloading;
 	var CanShoot;
 	var IsLocal;
 	
@@ -57,8 +58,9 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Angle     	  = 0;
 	Score		  = 0;
 	ClipCurrent   = CLIP_SIZE;
-	ClipRemaining = CLIP_SIZE * 9;
+	ClipRemaining = CLIP_SIZE * 2;
 	IsMoving      = false;
+	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
 	
@@ -165,8 +167,6 @@ function Swat::Update(level)
 			BulletNum--;
 			i--;
 		}
-		
-		outputln("Bullets: ", len(Bullets));
 	}
 }
 
@@ -240,11 +240,21 @@ function Swat::ParseKeyboard(level)
 	}
 	
 	/* Reload */
-	if (KeyPressed("R"))
+	if (KeyPressed("R") && !IsReloading)
 	{
-		ClipRemaining -= CLIP_SIZE - ClipCurrent;
-		ClipCurrent = 10;
+		IsReloading = true;
+		
+		if (ClipCurrent != CLIP_SIZE && ClipRemaining > 0)
+		{
+			var tmp = ClipRemaining;
+			var toReload = CLIP_SIZE - ClipCurrent;
+			
+			ClipRemaining = (ClipRemaining > toReload) ? ClipRemaining - toReload : 0;
+			ClipCurrent = (ClipRemaining > 0) ? CLIP_SIZE : ClipCurrent + tmp;
+		}
 	}
+	else
+		IsReloading = false;
 	
 	/* Shoot */
 	if (Mouse.ButtonL && CanShoot)
