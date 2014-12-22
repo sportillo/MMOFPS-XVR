@@ -25,23 +25,10 @@ var PlayerId = -1; /* start with an invalid ID */
 var Level;
 
 /* Function declarations */
-function RandomPos();
 function CameraUpdate();
 function DisplayScoreboard();
 function DisplayStatus();
-
-
-function RandomPos()
-{
-	while (true)
-	{
-		var x = Rand(Level.Width - 1) + 0.5;
-		var z = Rand(Level.Height - 1) + 0.5;
-		
-		if (!Level.IsColliding(x, z, 0))
-			return [x, 0, z];
-	}
-}
+function ShowCrosshair();
 
 
 function CameraUpdate()
@@ -56,9 +43,10 @@ function CameraUpdate()
 	CameraGetCurrent().SetPosition(p);
 	CameraGetCurrent().SetDirection(d);
 	
-//	Level.GetFX().SetListenerPosition(p);
 	var cam_z_axis = CameraGetCurrent().GetZAxis(); 
 	var cam_y_axis = CameraGetCurrent().GetYAxis();
+	
+//	Level.GetFX().SetListenerPosition(p);
 //	Level.GetFX().SetListenerOrientation(cam_z_axis, cam_y_axis);
 
 	/* Keep mouse cursor centered */
@@ -102,6 +90,14 @@ function DisplayStatus()
 }
 
 
+function ShowCrosshair()
+{
+	ConsoleColor([1, 1, 1]);
+	ConsoleLines([0.5, 0.45, 0.5, 0.55]);
+	ConsoleLines([0.45, 0.5, 0.55, 0.5]);
+}
+
+
 function OnDownload()
 {
 	/* Extract game files */
@@ -111,6 +107,9 @@ function OnDownload()
 
 function OnInit(params)
 {
+	/* Limit framerate */
+	SetFramerate(60);
+	
 	/* Hide cursor */
 	grabMouse = true;
 	ShowCursor(false);
@@ -121,7 +120,9 @@ function OnInit(params)
 	Level.Init("level.txt");
 	
 	/* Initialize player */
-	Level.Player = Swat(PlayerId, [1,0,0], RandomPos(), true);
+	Level.Player = Swat(PlayerId, [1,0,0], [0, 0, 0], true);
+	Level.Player.Level = Level; /* FIX ME */
+	Level.Player.Respawn();
 	
 	/* Initialize camera */
 	CameraUpdate();
@@ -133,8 +134,11 @@ function OnInit(params)
 	Light0.Enable();
 	
 	/* DEBUG: add dummies */
-	Level.AddEnemy(Swat(1, [0,1,0], RandomPos(), false));
-	Level.AddEnemy(Swat(2, [0,0,1], RandomPos(), false));
+	Level.AddEnemy(Swat(1, [0,1,0], [0, 0, 0], false));
+	Level.AddEnemy(Swat(2, [0,0,1], [0, 0, 0], false));
+	
+	foreach (var e in Level.Enemies)
+		e.Respawn();
 }
 
 
@@ -146,8 +150,8 @@ function OnFrame()
 		
 	if (KeyPressed(VK_ESCAPE))
 	{
-		grabMouse = false;
-		ShowCursor(true);
+		grabMouse = !grabMouse;
+		ShowCursor(!grabMouse);
 	}
 	
 	/* Update game */
@@ -158,9 +162,10 @@ function OnFrame()
 	
 	/* Show status */
 	DisplayStatus();
+	ShowCrosshair();
 	 
 	/* Update lights */
-	//Light0.SetPosition(Level.Player.Position);
+	Light0.SetPosition(Level.Player.Position);
 	
 	/* Draw scene */
 	SceneBegin();

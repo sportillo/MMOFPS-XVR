@@ -114,6 +114,7 @@ function Scenario::Draw()
 
 function Scenario::AddEnemy(p)
 {
+	p.Level = this;
 	aadd(Enemies, p);
 }
 
@@ -125,9 +126,9 @@ function Scenario::Update()
 	foreach (var e in Enemies)
 		e.Update(this);
 	
-	foreach (var e in Enemies)
-		foreach (var b in Player.Bullets)
-			if(distance(e.Position, b.Position) < 0.3)
+	foreach (var b in Player.Bullets)
+		foreach (var e in Enemies)
+			if(distance(e.Position, b.Position) < 0.5)
 			{
 				b.IsFlying = false;
 				Player.Scored();

@@ -3,12 +3,16 @@
 SET ANGLE_STEP	= 1;
 SET START_FRAME = 16;
 SET END_FRAME 	= 48;
-SET MAX_LIFE    = 10;
+
+SET MAX_HEALTH  = 100;
+SET DMG_HEALTH  = 15;
 SET CLIP_SIZE   = 10;
+SET CLIP_NUM    = 9;
 
 class Swat
 {
 // Private:
+	var Level;
 	var RootObj;
 	var UpperMesh,  UpperObj;
 	var LowerMesh,  LowerObj;
@@ -21,7 +25,7 @@ class Swat
 	var FX_Hit;
 	var FX_Shoot;
 	var FireBillboard, FireObj;
-	var HitCounter;
+	var HitAnimLength;
 
 // Public:
 	var Id;
@@ -30,6 +34,7 @@ class Swat
 	var Direction;
 	var Angle;	   /* in GRAD */
 	var Score;
+	var Health;
 	var ClipCurrent, ClipRemaining;
 	var IsMoving;
 	var IsReloading;
@@ -37,12 +42,13 @@ class Swat
 	var IsLocal;
 	
 
-	Update(level);
+	Update();
 	Draw();
 	
-	ParseKeyboard(level);
-	ParseNetwork(level);
+	ParseKeyboard();
+	ParseNetwork();
 	
+	Respawn();
 	Scored();
 	Hit();
 };
@@ -57,8 +63,9 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Direction     = [0, 0, 0];
 	Angle     	  = 0;
 	Score		  = 0;
+	Health        = MAX_HEALTH;
 	ClipCurrent   = CLIP_SIZE;
-	ClipRemaining = CLIP_SIZE * 2;
+	ClipRemaining = CLIP_SIZE * CLIP_NUM;
 	IsMoving      = false;
 	IsReloading   = false;
 	CanShoot      = true;
@@ -73,7 +80,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	FX_Shoot      = CVmVRAWav("shoot.wav", true);
 	FireBillboard = CVmBillboard("flame43.avi", 0.5, 0.5);
 	FireObj       = CVmObj();
-	HitCounter    = 0;
+	HitAnimLength = 0;
 	
 	FireObj.LinkToBillboard(FireBillboard);
 	FireObj.SetPosition(Position);
@@ -115,7 +122,7 @@ function Swat::Draw()
 		b.Draw();
 	
 	/* Draw hit effect */
-	if(HitCounter > 0)
+	if(HitAnimLength > 0)
 	{
 		glDisable(GL_LIGHTING);
 		glEnable(GL_BLEND);
@@ -126,18 +133,18 @@ function Swat::Draw()
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_DEPTH_TEST);
-		HitCounter--;
+		HitAnimLength--;
 	}
 }
 
 
-function Swat::Update(level)
+function Swat::Update()
 {
 	/* Parse new events */
 	if (IsLocal)
-		ParseKeyboard(level);
+		ParseKeyboard();
 	else
-		ParseNetwork(level);
+		ParseNetwork();
 
 	/* Update animation */
 	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
@@ -173,8 +180,18 @@ function Swat::Update(level)
 
 function Swat::Hit()
 {
-	HitCounter += 10;
-	FX_Hit.Play();
+	/* Decrease health */
+	Health -= DMG_HEALTH;
+	
+	if (Health <= 0)
+		Respawn();
+	else
+	{
+		/* Play hit anim */
+		HitAnimLength = 30;
+		FX_Hit.Play();
+	}
+	
 }
 
 
@@ -184,7 +201,29 @@ function Swat::Scored()
 }
 
 
-function Swat::ParseKeyboard(level)
+function Swat::Respawn()
+{
+	Direction     = [0, 0, 0];
+	Angle         = 0;
+	Health        = MAX_HEALTH;
+	ClipCurrent   = CLIP_SIZE;
+	ClipRemaining = CLIP_SIZE * CLIP_NUM;
+	
+	while (true)
+	{
+		var x = Rand(Level.Width - 1) + 0.5;
+		var z = Rand(Level.Height - 1) + 0.5;
+		
+		if (!Level.IsColliding(x, z, 0))
+		{
+			Position = [x, 0, z];
+			return;
+		}
+	}
+}
+
+
+function Swat::ParseKeyboard()
 {
 	var step        = 0.05;
 	var mouseStep   = 0.2;
@@ -279,12 +318,12 @@ function Swat::ParseKeyboard(level)
 	}
 	
 	/* Check collision */
-	if (level.IsColliding(Position.x, Position.z, 0.3))
+	if (Level.IsColliding(Position.x, Position.z, 0.3))
 		Position = oldPosition;
 }
 
 
-function Swat::ParseNetwork(level)
+function Swat::ParseNetwork()
 {
 	
 }
