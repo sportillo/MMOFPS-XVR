@@ -175,10 +175,15 @@ function Swat::Scored()
 function Swat::ParseKeyboard(level)
 {
 	var step        = 0.05;
+	var mouseStep   = 0.2;
 	var animStep    = 0.5;
 	var oldPosition = Position;
 	
+	var mouseDelta = [Mouse.DeltaX, Mouse.DeltaY];
+	
 	IsMoving  = false;
+	
+	Angle    -= mouseDelta.X * mouseStep;
 	Direction = [ sin(Angle * GRAD_TO_RAD),
 				  0,
 				  cos(Angle * GRAD_TO_RAD) ];
