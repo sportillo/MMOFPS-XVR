@@ -21,11 +21,8 @@ var Light0;
 var PosL = [16.0, 10.0, 16.0];	// default light position
 
 /* Game globals */
-var Player;
 var PlayerId = -1; /* start with an invalid ID */
-
 var Level;
-var Enemies;
 
 /* Function declarations */
 function RandomPos();
@@ -48,8 +45,8 @@ function RandomPos()
 
 function CameraUpdate()
 {
-	var p = Player.Position; 
-	var d = Player.Direction;
+	var p = Level.Player.Position; 
+	var d = Level.Player.Direction;
 	
 	/* Adjust camera height */	
 	p += [0, CAMERA_HEIGHT, 0];
@@ -76,13 +73,13 @@ function DisplayScoreboard()
 	
 	ConsoleFont("Tahoma", 20);
 	
-	ConsoleColor(Player.Color);
-	ConsoleText(x, y, "Player:\t\t" + str(Player.Score));
+	ConsoleColor(Level.Player.Color);
+	ConsoleText(x, y, "Player:\t\t" + str(Level.Player.Score));
 	
 	y -= 0.025;
 	ConsoleLines([x, y, x + 0.3, y]);
 	
-	foreach (var e in Enemies)
+	foreach (var e in Level.Enemies)
 	{
 		y -= 0.05;
 		i++;
@@ -112,10 +109,7 @@ function OnInit(params)
 	Level.Init("level.txt");
 	
 	/* Initialize player */
-	Player = Swat(PlayerId, [1,0,0], RandomPos(), true);
-	
-	/* Initialize enemies */
-	Enemies = Array(0);
+	Level.Player = Swat(PlayerId, [1,0,0], RandomPos(), true);
 	
 	/* Initialize camera */
 	CameraUpdate();
@@ -127,8 +121,8 @@ function OnInit(params)
 	Light0.Enable();
 	
 	/* DEBUG: add dummies */
-	aadd(Enemies, Swat(1, [0,1,0], RandomPos(), false));
-	aadd(Enemies, Swat(2, [0,0,1], RandomPos(), false));
+	Level.AddEnemy(Swat(1, [0,1,0], RandomPos(), false));
+	Level.AddEnemy(Swat(2, [0,0,1], RandomPos(), false));
 }
 
 
@@ -144,28 +138,19 @@ function OnFrame()
 		ShowCursor(true);
 	}
 	
-	/* Update player */
-	Player.Update(Level);
-	
-	/* Update enemies */
-	foreach (var e in Enemies)
-		e.Update(Level);
+	/* Update game */
+	Level.Update();
 	
 	/* Update camera */
 	CameraUpdate();
 	 
 	/* Update lights */
-	//Light0.SetPosition();
+	//Light0.SetPosition(Level.Player.Position);
 	
 	/* Draw scene */
 	SceneBegin();
 
 	Level.Draw();
-	Player.Draw();
-	
-	/* Update enemies */
-	foreach (var e in Enemies)
-		e.Draw();
 
 	SceneEnd();
 }

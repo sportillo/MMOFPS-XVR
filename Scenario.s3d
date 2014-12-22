@@ -10,12 +10,25 @@ class Scenario
 // Public:
 	var Width;
 	var Height;
+	
+	var Player;
+	var Enemies;
 
 	Init(filename);
+	Update();
 	Draw();
+	
+	AddEnemy(p);
 	
 	IsColliding(x, z, radius);
 };
+
+
+function distance(p1, p2)
+{
+	return modulus(p1.x_z - p2.x_z);
+}
+
 
 function Scenario::Init(filename)
 {
@@ -23,6 +36,9 @@ function Scenario::Init(filename)
 	var data = LoadFile(filename);
 	Height = len(data) - 1;
 	Width = len(data[0]);
+	
+	/* Initialize enemies */
+	Enemies = Array(0);
 	
 	/* Initialize wall data structure */
 	Walls = array(height);
@@ -77,34 +93,71 @@ function Scenario::Init(filename)
 		}
 }
 
-//function Scenario::Update()
-//{
-//	foreach (var p in playersArray)
-//		p.Update(this);
-//		
-//	foreach (var p in playersArray)
+
+function Scenario::Draw()
+{
+	/* Draw floor */
+	FloorObj.Draw();
+	
+	/* Draw walls */
+	foreach (var w in WallObj)
+		w.Draw();
+		
+	/* Draw player */
+	Player.Draw();
+		
+	/* Draw enemies */
+	foreach (var e in Enemies)
+		e.Draw();
+}
+
+
+function Scenario::AddEnemy(p)
+{
+	aadd(Enemies, p);
+}
+
+
+function Scenario::Update()
+{
+	Player.Update(this);
+	
+	foreach (var e in Enemies)
+		e.Update(this);
+	
+	foreach (var e in Enemies)
+		foreach (var b in Player.Bullets)
+			if(distance(e.Position, b.Position) < 0.3)
+			{
+				b.IsFlying = false;
+				Player.Scored();
+				e.Hit();
+				outputln("Player ", Player.ID, " hit Player ", e.ID);
+			}
+	
+//	foreach (var p in Players)
 //	{
-//		foreach ( var b in p.GetBullets())
+//		foreach ( var b in p.Bullets)
 //		{
-//			if(b.GetFlying() == true)
+//			if(b.IsFlying)
 //			{
-//				foreach (var q in PlayersArray)
+//				foreach (var q in Players)
 //				{
-//					if(p!=q)
+//					if(p != q)
 //					{
-//						if(distance(q.GetPosition(),b.GetPosition()) < 0.3)
+//						if(distance(q.Position, b.Position) < 0.3)
 //						{
-//							b.SetFlying(false);
+//							b.IsFlying = false;
 //							p.Scored();
-//							q.Hitted();
-//							//outputln("Player ", p.GetID(), " score: ", p.GetScore());
+//							q.Hit();
+//							outputln("Player ", p.ID, " hit Player ", q.ID);
 //						}
 //					}
 //				}
 //			}
 //		}
 //	}
-//}
+}
 
 function Scenario::IsColliding(x, z, radius)
 {
@@ -122,14 +175,4 @@ function Scenario::IsColliding(x, z, radius)
 		return true;
 	else
 		return false;
-}
-
-function Scenario::Draw()
-{
-	/* Draw floor */
-	FloorObj.Draw();
-	
-	/* Draw walls */
-	foreach (var w in WallObj)
-		w.Draw();
 }

@@ -3,8 +3,8 @@
 SET ANGLE_STEP	= 1;
 SET START_FRAME = 16;
 SET END_FRAME 	= 48;
-SET MAX_BULLET  = 5;
 SET MAX_LIFE    = 10;
+SET CLIP_SIZE   = 10;
 
 class Swat
 {
@@ -15,8 +15,8 @@ class Swat
 	var WeaponMesh, WeaponObj;
 	var CurrentFrame;
 	
-	var BulletNum;
 	var Bullets;
+	var BulletNum;
 	
 	var FX_Hit;
 	var FX_Shoot;
@@ -30,6 +30,7 @@ class Swat
 	var Direction;
 	var Angle;	   /* in GRAD */
 	var Score;
+	var ClipCurrent, ClipRemaining;
 	var IsMoving;
 	var CanShoot;
 	var IsLocal;
@@ -49,22 +50,21 @@ class Swat
 function Swat::Swat(p_id, p_color, p_pos, p_local)
 {
 	/* Initialize player variables */
-	Id 			 = p_id;
-	Color		 = p_color;
-	Position     = p_pos;
-	Direction    = [0, 0, 0];
-	Angle     	 = 0;
-	Score		 = 0;
-	IsMoving     = false;
-	CanShoot     = true;
-	IsLocal      = p_local;
+	Id 			  = p_id;
+	Color		  = p_color;
+	Position      = p_pos;
+	Direction     = [0, 0, 0];
+	Angle     	  = 0;
+	Score		  = 0;
+	ClipCurrent   = CLIP_SIZE;
+	ClipRemaining = CLIP_SIZE * 9;
+	IsMoving      = false;
+	CanShoot      = true;
+	IsLocal       = p_local;
 	
 	/* Initialize bullets */
 	BulletNum    = 0;
-	Bullets      = array(MAX_BULLET);
-	
-	for (var i = 0; i < MAX_BULLET; i++)
-		Bullets[i] = Bullet(Color);
+	Bullets      = Array(0);
 	
 	/* Initialize effects */
 	FX_Hit        = CVmVRAWav("hit.wav", true);
@@ -154,8 +154,20 @@ function Swat::Update(level)
 	FireObj.SetPosition(Position + [0, 1, 0]);
 	
 	/* Update bullets */
-	foreach (var b in Bullets)
+	for (var i = 0; i < BulletNum; i++)
+	{
+		var b = Bullets[i];
 		b.Update(level);
+		
+		if (!b.IsFlying)
+		{
+			adel(Bullets, i);
+			BulletNum--;
+			i--;
+		}
+		
+		outputln("Bullets: ", len(Bullets));
+	}
 }
 
 
@@ -230,16 +242,22 @@ function Swat::ParseKeyboard(level)
 	/* Reload */
 	if (KeyPressed("R"))
 	{
-		BulletNum = 0;
+		ClipRemaining -= CLIP_SIZE - ClipCurrent;
+		ClipCurrent = 10;
 	}
 	
 	/* Shoot */
 	if (Mouse.ButtonL && CanShoot)
 	{
-		if (BulletNum < MAX_BULLET) 
+		if (ClipCurrent > 0) 
 		{
-			Bullets[BulletNum].Shoot(Position, Direction);
+			ClipCurrent--;
+			
+			var b = Bullet(Color);
+			aadd(Bullets, b);
 			BulletNum++;	
+			
+			b.Shoot(Position, Direction);
 			FX_Shoot.Play();
 		}
 		
