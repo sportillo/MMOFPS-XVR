@@ -131,9 +131,10 @@ function Scenario::Update()
 			if(distance(e.Position, b.Position) < 0.5)
 			{
 				b.IsFlying = false;
-				Player.Scored();
-				e.Hit();
-				outputln("Player ", Player.ID, " hit Player ", e.ID);
+				
+				var kill = e.Hit();
+				if (kill)
+					Player.Scored();
 			}
 }
 

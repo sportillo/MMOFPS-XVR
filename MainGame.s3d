@@ -87,14 +87,19 @@ function DisplayStatus()
 	ConsoleColor([1, 1, 0]);
 	
 	ConsoleText(0.05, 0.05, str(p.ClipCurrent) + " / " + str(p.ClipRemaining));
+	
+	if (p.IsReloading)
+	{
+		ConsoleFilledRect(0.05, 0.15, 0.05, 0.01);
+	}
 }
 
 
 function ShowCrosshair()
 {
 	ConsoleColor([1, 1, 1]);
-	ConsoleLines([0.5, 0.45, 0.5, 0.55]);
-	ConsoleLines([0.45, 0.5, 0.55, 0.5]);
+	ConsoleLines([0.5, 0.47, 0.5, 0.53]);
+	ConsoleLines([0.48, 0.5, 0.52, 0.5]);
 }
 
 

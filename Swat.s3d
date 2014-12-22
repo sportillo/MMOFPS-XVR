@@ -5,9 +5,11 @@ SET START_FRAME = 16;
 SET END_FRAME 	= 48;
 
 SET MAX_HEALTH  = 100;
-SET DMG_HEALTH  = 15;
+SET DMG_HEALTH  = 25;
 SET CLIP_SIZE   = 10;
 SET CLIP_NUM    = 9;
+
+SET RELOAD_TIME = 1000;
 
 class Swat
 {
@@ -21,9 +23,11 @@ class Swat
 	
 	var Bullets;
 	var BulletNum;
+	var ReloadTimer;
 	
 	var FX_Hit;
 	var FX_Shoot;
+	var FX_Jam;
 	var FireBillboard, FireObj;
 	var HitAnimLength;
 
@@ -74,10 +78,12 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	/* Initialize bullets */
 	BulletNum    = 0;
 	Bullets      = Array(0);
+	ReloadTimer  = -RELOAD_TIME;
 	
 	/* Initialize effects */
 	FX_Hit        = CVmVRAWav("hit.wav", true);
 	FX_Shoot      = CVmVRAWav("shoot.wav", true);
+	FX_Jam        = CVmVRAWav("jam.wav", true);
 	FireBillboard = CVmBillboard("flame43.avi", 0.5, 0.5);
 	FireObj       = CVmObj();
 	HitAnimLength = 0;
@@ -184,12 +190,16 @@ function Swat::Hit()
 	Health -= DMG_HEALTH;
 	
 	if (Health <= 0)
+	{
 		Respawn();
+		return true;
+	}
 	else
 	{
 		/* Play hit anim */
 		HitAnimLength = 30;
 		FX_Hit.Play();
+		return false;
 	}
 	
 }
@@ -208,6 +218,8 @@ function Swat::Respawn()
 	Health        = MAX_HEALTH;
 	ClipCurrent   = CLIP_SIZE;
 	ClipRemaining = CLIP_SIZE * CLIP_NUM;
+	
+	HitAnimLength = 0;
 	
 	while (true)
 	{
@@ -279,12 +291,14 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Reload */
-	if (KeyPressed("R") && !IsReloading)
+	if (getTime() - ReloadTimer > RELOAD_TIME)
 	{
-		IsReloading = true;
-		
-		if (ClipCurrent != CLIP_SIZE && ClipRemaining > 0)
+		IsReloading = false;
+
+		if (KeyPressed("R") && ClipCurrent != CLIP_SIZE && ClipRemaining > 0)
 		{
+			ReloadTimer = getTime();
+		
 			var tmp = ClipRemaining;
 			var toReload = CLIP_SIZE - ClipCurrent;
 			
@@ -293,10 +307,12 @@ function Swat::ParseKeyboard()
 		}
 	}
 	else
-		IsReloading = false;
+	{
+		IsReloading = true;
+	}
 	
 	/* Shoot */
-	if (Mouse.ButtonL && CanShoot)
+	if (Mouse.ButtonL && CanShoot && !IsReloading)
 	{
 		if (ClipCurrent > 0) 
 		{
@@ -308,6 +324,10 @@ function Swat::ParseKeyboard()
 			
 			b.Shoot(Position, Direction);
 			FX_Shoot.Play();
+		}
+		else
+		{
+			FX_Jam.Play();
 		}
 		
 		CanShoot = false;
