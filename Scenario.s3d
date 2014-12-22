@@ -1,3 +1,7 @@
+#include <Weapon.s3d>
+
+SET WEAPON_INTERVAL = 5000;
+
 class Scenario
 {
 // Private:
@@ -6,6 +10,10 @@ class Scenario
 	var WallMesh, WallObj;
 	var WallMaterial, WallTexture;
 	var Walls;
+	
+	var WeaponSpawns;
+	var WeaponCount;
+	var WeaponTimer;
 	
 // Public:
 	var Width;
@@ -40,6 +48,11 @@ function Scenario::Init(filename)
 	
 	/* Initialize enemies */
 	Enemies = Array(0);
+	
+	/* Initialize spawns */
+	WeaponSpawns = Array(0);
+	WeaponTimer  = 0;
+	WeaponCount  = 0;
 	
 	/* Initialize wall data structure */
 	Walls = array(height);
@@ -77,20 +90,26 @@ function Scenario::Init(filename)
 	FloorObj = CVmObj(FloorMesh);
 	
 	/* Parse level file */
-	for(var i = 0; i < height; i++)
+	for (var i = 0; i < height; i++)
 		for (var j = 0; j < width; j++)
 		{
-			if(data[i][j] == "*")
+			if (data[i][j] == "*")
 			{
+				Walls[i][j] = 1;
+				
 				/* Add wall piece */
 				var wall = CVmObj();
 				wall.LinkToMesh(WallMesh);
 				wall.SetPosition(j, 0, i);
 				aadd(WallObj, wall);
-				Walls[i][j] = 1;
-			} 
+			}
 			else
+			{
 				Walls[i][j] = 0;
+				
+				if (data[i][j] == "W")
+					aadd(WeaponSpawns, {[j + 0.5, 0, i + 0.5], null});					
+			}
 		}
 }
 
@@ -110,6 +129,11 @@ function Scenario::Draw()
 	/* Draw enemies */
 	foreach (var e in Enemies)
 		e.Draw();
+		
+	/* Draw spawns */
+	foreach (var s in WeaponSpawns)
+		if (s[1] != null)
+			s[1].Draw();
 }
 
 
@@ -131,11 +155,42 @@ function Scenario::UpdateFX(listener)
 
 function Scenario::Update()
 {
+	/* Update players */
 	Player.Update(this);
 	
 	foreach (var e in Enemies)
 		e.Update(this);
+		
+	/* Check new spawns and update */
+	if (getTime() - WeaponTimer > WEAPON_INTERVAL)
+	{
+		WeaponTimer = getTime();
+		
+		var numSpawns = len(WeaponSpawns);
+		if (WeaponCount < numSpawns)
+		{
+			static var loc = 0;
+			
+			if (WeaponSpawns[loc][1] == null)
+			{
+				var w = Weapon("railgun.aam", true);
+				w.SetSpawn(WeaponSpawns[loc][0]);
+			
+				WeaponCount++;
+				WeaponSpawns[loc][1] = w;	
+			}
+			
+			loc = (loc + 1) % numSpawns;
+		}
+	}
 	
+	for (var i = 0; i < len(WeaponSpawns); i++)
+	{
+		if (WeaponSpawns[i][1] != null)
+			WeaponSpawns[i][1].Update();
+	}
+	
+	/* Check player collision */
 	foreach (var b in Player.Bullets)
 		foreach (var e in Enemies)
 			if(distance(e.Position, b.Position) < 0.5)

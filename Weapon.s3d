@@ -1,0 +1,48 @@
+SET ROT_SPEED = 2;
+
+class Weapon
+{
+// Private:
+	var Mesh, Object;
+	
+// Public:
+	var Position;
+	var IsAmmo;
+	
+	Update();
+	Draw();
+	
+	SetSpawn(loc);
+};
+
+
+function Weapon::Weapon(name, ammo)
+{
+	/* Initialize variables */
+	IsAmmo   = ammo;
+	Position = [0, 0, 0];
+	
+	/* Initialize mesh */
+	Mesh   = CVmNewMesh(name);
+	Object = CVmObj(Mesh);
+	
+	Mesh.Scale(0.04);
+}
+
+
+function Weapon::Update()
+{
+	Object.Rotate(ROT_SPEED, [0, 1, 0]);
+}
+
+
+function Weapon::Draw()
+{
+	Object.Draw(VR_FRAMENUMBER, 0);
+}
+
+
+function Weapon::SetSpawn(loc)
+{
+	Object.SetPosition(loc);
+}
