@@ -197,11 +197,19 @@ function Swat::ParseKeyboard(level)
 	
 	/* Turn right */
 	if (KeyPressed("D"))
-		Angle -= ANGLE_STEP;
+	{
+		Position += step * VectorRotate(-90, [0,1,0], Direction);
+		CurrentFrame += animStep;
+		IsMoving = true;
+	}
 		
 	/* Turn left */
 	if (KeyPressed("A"))
-		Angle += ANGLE_STEP;
+	{
+		Position += step * VectorRotate(90, [0,1,0], Direction);
+		CurrentFrame += animStep;
+		IsMoving = true;
+	}
 		
 	/* Go forward */
 	if (KeyPressed("W"))
