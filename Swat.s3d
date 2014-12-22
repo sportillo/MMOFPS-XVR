@@ -47,6 +47,7 @@ class Swat
 	
 
 	Update();
+	UpdateFX(listener);
 	Draw();
 	
 	ParseKeyboard();
@@ -164,8 +165,10 @@ function Swat::Update()
 	RootObj.SetRotation(Angle, [0, 1, 0]);
 		
 	/* Update FX position */
-	var sound_pos = Position + [0, 1, 0];
-	FX_Hit.SetPosition(sound_pos);
+	FX_Hit.SetPosition(Position);
+	FX_Shoot.SetPosition(Position);
+	FX_Jam.SetPosition(Position);
+	
 	FireObj.SetPosition(Position + [0, 1, 0]);
 	
 	/* Update bullets */
@@ -181,6 +184,23 @@ function Swat::Update()
 			i--;
 		}
 	}
+}
+
+
+function Swat::UpdateFX(listener)
+{
+	var pos   = listener.GetPosition();
+	var front = listener.GetZAxis(); 
+	var top   = listener.GetYAxis();
+	
+	FX_Hit.SetListenerPosition(pos);
+	FX_Hit.SetListenerOrientation(-front, top);
+	
+	FX_Shoot.SetListenerPosition(pos);
+	FX_Shoot.SetListenerOrientation(-front, top);
+	
+	FX_Jam.SetListenerPosition(pos);
+	FX_Jam.SetListenerOrientation(-front, top);
 }
 
 
@@ -345,5 +365,5 @@ function Swat::ParseKeyboard()
 
 function Swat::ParseNetwork()
 {
-	
+
 }

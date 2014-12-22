@@ -14,7 +14,8 @@ SET CAMERA_HEIGHT = 1.5;
 
 /* Camera globals */
 var CamPos = [0.0, 5.0, 30.0]; 	// camera position
-var grabMouse = false;
+var CameraFirst = true;
+var GrabMouse = false;
 
 /* Light globals */
 var Light0;
@@ -36,21 +37,25 @@ function CameraUpdate()
 	var p = Level.Player.Position; 
 	var d = Level.Player.Direction;
 	
-	/* Adjust camera height */	
+	/* First-person camera position */	
 	p += [0, CAMERA_HEIGHT, 0];
+	
+	/* Third-person camera position */
+	if (!CameraFirst)
+	{
+		p += VectorRotate(190, [0,1,0], Level.Player.Direction) * 2.0;
+		p += [0, 0.25, 0];
+	}
 	
 	/* Update camera */
 	CameraGetCurrent().SetPosition(p);
 	CameraGetCurrent().SetDirection(d);
 	
-	var cam_z_axis = CameraGetCurrent().GetZAxis(); 
-	var cam_y_axis = CameraGetCurrent().GetYAxis();
-	
-//	Level.GetFX().SetListenerPosition(p);
-//	Level.GetFX().SetListenerOrientation(cam_z_axis, cam_y_axis);
+	/* Update sound effects */	
+	Level.UpdateFX(CameraGetCurrent());
 
 	/* Keep mouse cursor centered */
-	if (grabMouse)
+	if (GrabMouse)
 		SetCursorPos(0.5, 0.5);
 }
 
@@ -116,7 +121,7 @@ function OnInit(params)
 	SetFramerate(60);
 	
 	/* Hide cursor */
-	grabMouse = true;
+	GrabMouse = true;
 	ShowCursor(false);
 	ShowCursor(false); /* FIX */
 	
@@ -155,9 +160,15 @@ function OnFrame()
 		
 	if (KeyPressed(VK_ESCAPE))
 	{
-		grabMouse = !grabMouse;
-		ShowCursor(!grabMouse);
+		GrabMouse = !GrabMouse;
+		ShowCursor(!GrabMouse);
 	}
+	
+	if (KeyPressed("F"))
+		CameraFirst = true;
+		
+	if (KeyPressed("T"))
+		CameraFirst = false;
 	
 	/* Update game */
 	Level.Update();

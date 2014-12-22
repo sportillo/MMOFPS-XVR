@@ -19,6 +19,7 @@ class Scenario
 	Draw();
 	
 	AddEnemy(p);
+	UpdateFX(listener);
 	
 	IsColliding(x, z, radius);
 };
@@ -116,6 +117,15 @@ function Scenario::AddEnemy(p)
 {
 	p.Level = this;
 	aadd(Enemies, p);
+}
+
+
+function Scenario::UpdateFX(listener)
+{
+	Player.UpdateFX(listener);
+	
+	foreach (var e in Enemies)
+		e.UpdateFX(listener);
 }
 
 
