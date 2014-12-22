@@ -193,7 +193,7 @@ function Scenario::Update()
 	/* Check player collision */
 	foreach (var b in Player.Bullets)
 		foreach (var e in Enemies)
-			if(distance(e.Position, b.Position) < 0.5)
+			if(distance(e.Position.x_z, b.Position.x_z) < 0.5 && b.Position.y < 1.8)
 			{
 				b.IsFlying = false;
 				

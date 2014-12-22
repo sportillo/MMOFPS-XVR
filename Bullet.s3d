@@ -4,6 +4,7 @@ class Bullet
 {
 // Private:
 	var BulletMesh, BulletObj;
+	var Traveled;
 	
 // Public:
 	var Color;
@@ -26,6 +27,7 @@ function Bullet::Bullet(col)
 	Color     = col;
 	Position  = [0, 0, 0];
 	Direction = [0, 0, 0];
+	Traveled  = 0;
 	Speed     = BULLET_SPEED;
 	IsFlying  = false;
 
@@ -42,6 +44,7 @@ function Bullet::Shoot(pos, dir)
 {
 	Position  = pos; Position.y = 1;
 	Direction = dir;
+	Traveled  = 0;
 	IsFlying  = true;
 }
 
@@ -54,10 +57,15 @@ function Bullet::Update(level)
 	{
 		/* Update position */
 		Position += Direction * Speed;
+		Traveled += modulus(Direction * Speed);
 		
 		/* Check collision with level */
-		if(level.IsColliding(Position.x, Position.z, 0.1))
+		if (Position.y < 0 || Traveled > 1000 ||
+			level.IsColliding(Position.x, Position.z, 0.1))
+		   /* FIX: not working, IsColliding must take Y into account */
+		{
 			IsFlying = false;
+		}
 		else
 			BulletObj.SetPosition(Position);
 	}

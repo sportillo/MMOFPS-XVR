@@ -36,7 +36,7 @@ class Swat
 	var Color;
 	var Position;
 	var Direction;
-	var Angle;	   /* in GRAD */
+	var Pitch, Yaw; /* in GRAD */
 	var Score;
 	var Health;
 	var ClipCurrent, ClipRemaining;
@@ -66,7 +66,8 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Color		  = p_color;
 	Position      = p_pos;
 	Direction     = [0, 0, 0];
-	Angle     	  = 0;
+	Pitch     	  = 0;
+	Yaw           = 0;
 	Score		  = 0;
 	Health        = MAX_HEALTH;
 	ClipCurrent   = CLIP_SIZE;
@@ -162,7 +163,7 @@ function Swat::Update()
 	
 	/* Update player position */
 	RootObj.SetPosition(Position);
-	RootObj.SetRotation(Angle, [0, 1, 0]);
+	RootObj.SetRotation(Yaw, [0, 1, 0]);
 		
 	/* Update FX position */
 	FX_Hit.SetPosition(Position);
@@ -234,7 +235,8 @@ function Swat::Scored()
 function Swat::Respawn()
 {
 	Direction     = [0, 0, 0];
-	Angle         = 0;
+	Pitch         = 0;
+	Yaw           = 0;
 	Health        = MAX_HEALTH;
 	ClipCurrent   = CLIP_SIZE;
 	ClipRemaining = CLIP_SIZE * CLIP_NUM;
@@ -257,6 +259,7 @@ function Swat::Respawn()
 
 function Swat::ParseKeyboard()
 {
+	static var pitch = 0;
 	var step        = 0.05;
 	var mouseStep   = 0.2;
 	var animStep    = 0.5;
@@ -266,10 +269,11 @@ function Swat::ParseKeyboard()
 	
 	IsMoving  = false;
 	
-	Angle    -= mouseDelta.X * mouseStep;
-	Direction = [ sin(Angle * GRAD_TO_RAD),
-				  0,
-				  cos(Angle * GRAD_TO_RAD) ];
+	Yaw      -= mouseDelta.X * mouseStep;
+	Pitch    -= mouseDelta.Y * mouseStep;
+	Direction = [ sin(Yaw * GRAD_TO_RAD),
+				  sin(Pitch * GRAD_TO_RAD),
+				  cos(Yaw * GRAD_TO_RAD) ];
 	
 	/* Shift: run */
 	if (KeyPressed(VK_SHIFT))
@@ -281,7 +285,7 @@ function Swat::ParseKeyboard()
 	/* Turn right */
 	if (KeyPressed("D"))
 	{
-		Position += step * VectorRotate(-90, [0,1,0], Direction);
+		Position += step * VectorRotate(-90, [0,1,0], Direction.x_z);
 		CurrentFrame += animStep;
 		IsMoving = true;
 	}
@@ -289,7 +293,7 @@ function Swat::ParseKeyboard()
 	/* Turn left */
 	if (KeyPressed("A"))
 	{
-		Position += step * VectorRotate(90, [0,1,0], Direction);
+		Position += step * VectorRotate(90, [0,1,0], Direction.x_z);
 		CurrentFrame += animStep;
 		IsMoving = true;
 	}
@@ -297,7 +301,7 @@ function Swat::ParseKeyboard()
 	/* Go forward */
 	if (KeyPressed("W"))
 	{
-		Position += step * Direction;
+		Position += step * Direction.x_z;
 		CurrentFrame += animStep;
 		IsMoving = true;
 	}
@@ -305,7 +309,7 @@ function Swat::ParseKeyboard()
 	/* Go backward */
 	if (KeyPressed("S"))
 	{
-		Position -= step * Direction;
+		Position -= step * Direction.x_z;
 		CurrentFrame -= animStep;
 		IsMoving = true;
 	}
