@@ -30,6 +30,7 @@ class Scenario
 	UpdateFX(listener);
 	
 	IsColliding(x, z, radius);
+	ExistID(pid);
 };
 
 
@@ -219,4 +220,13 @@ function Scenario::IsColliding(x, z, radius)
 		return true;
 	else
 		return false;
+}
+
+function Scenario::ExistID(pid)
+{
+	foreach (var e in Enemies)
+		if (e.ID == pid)
+			return true;
+			
+	return false;
 }

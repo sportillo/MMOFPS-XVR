@@ -1,4 +1,5 @@
 #include <Bullet.s3d>
+#include <Network.s3d>
 
 SET ANGLE_STEP	= 1;
 SET START_FRAME = 16;
@@ -8,8 +9,8 @@ SET MAX_HEALTH  = 100;
 SET DMG_HEALTH  = 25;
 SET CLIP_SIZE   = 10;
 SET CLIP_NUM    = 9;
-
 SET RELOAD_TIME = 1000;
+
 
 class Swat
 {
@@ -30,6 +31,8 @@ class Swat
 	var FX_Jam;
 	var FireBillboard, FireObj;
 	var HitAnimLength;
+	
+	var AdvertiseTimer;
 
 // Public:
 	var Id;
@@ -76,6 +79,9 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
+	
+	/* Initialize network */
+	AdvertiseTimer = 0;
 	
 	/* Initialize bullets */
 	BulletNum    = 0;
@@ -171,6 +177,24 @@ function Swat::Update()
 	FX_Jam.SetPosition(Position);
 	
 	FireObj.SetPosition(Position + [0, 1, 0]);
+	
+	/* Network stuff */
+	if (getTime() - AdvertiseTimer > ADVERTISE_TIMEOUT)
+	{
+		AdvertiseTimer = getTime();
+		
+		var PDU = Vector(8);
+		PDU[0] = ADVERTISE_PDU;
+		PDU[1] = ID;
+		PDU[2] = Color.r;
+		PDU[3] = Color.g;
+		PDU[4] = Color.b;
+		PDU[5] = Position.x;
+		PDU[6] = Position.y;
+		PDU[7] = Position.z;
+		
+		NetworkSend(PDU);
+	}
 	
 	/* Update bullets */
 	for (var i = 0; i < BulletNum; i++)
