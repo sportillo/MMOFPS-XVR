@@ -181,21 +181,25 @@ function Swat::Update()
 	/* Network stuff */
 	if (IsLocal)
 	{
+		/* Send update */
+		var PDU = Vector(10);
+		PDU[0] = UPDATE_PDU;
+		PDU[1] = ID;
+		PDU[2] = Color.r;
+		PDU[3] = Color.g;
+		PDU[4] = Color.b;
+		PDU[5] = Position.x;
+		PDU[6] = Position.y;
+		PDU[7] = Position.z;
+		PDU[8] = Pitch;
+		PDU[9] = Yaw;
+		
+		NetworkSend(PDU);
+		
+		/* Adverties presence */
 		if (getTime() - AdvertiseTimer > ADVERTISE_TIMEOUT)
 		{
 			AdvertiseTimer = getTime();
-			
-			var PDU = Vector(10);
-			PDU[0] = ADVERTISE_PDU;
-			PDU[1] = ID;
-			PDU[2] = Color.r;
-			PDU[3] = Color.g;
-			PDU[4] = Color.b;
-			PDU[5] = Position.x;
-			PDU[6] = Position.y;
-			PDU[7] = Position.z;
-			PDU[8] = Pitch;
-			PDU[9] = Yaw;
 			
 			NetworkSend(PDU);
 		}

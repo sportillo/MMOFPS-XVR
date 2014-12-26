@@ -168,8 +168,8 @@ function Scenario::Update()
 		{
 			if (data[1] != Player.ID)
 			{
-				/* Advertisement */
-				if (data[0] == ADVERTISE_PDU)
+				/* Advertisement or update (CAREFUL, they may not be the same forever! */
+				if (data[0] == ADVERTISE_PDU || data[0] == UPDATE_PDU)
 				{
 					var enemy = GetById(data[1]);
 					
