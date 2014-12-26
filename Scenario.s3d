@@ -186,6 +186,8 @@ function Scenario::Update()
 					enemy.Position = [data[5], data[6], data[7]];
 					enemy.Pitch    = data[8];
 					enemy.Yaw      = data[9];
+					
+					enemy.AdvertiseTimer = getTime();
 				}
 			}
 		}
@@ -195,11 +197,25 @@ function Scenario::Update()
 		}
 	}
 	
-	/* Update players */
+	/* Update player */
 	Player.Update(this);
 	
-	foreach (var e in Enemies)
-		e.Update(this);
+	/* Update enemies */
+	for (var i = 0; i < len(Enemies); i++)
+	{
+		var e = Enemies[i];
+		
+		outputln(str(getTime()) + " " + str(e.advertisetimer));
+		
+		if (getTime() - e.AdvertiseTimer > PLAYER_TIMEOUT)
+		{
+			outputln("deleted");
+			adel(Enemies, i);
+			i--;
+		}
+		else
+			e.Update(this);
+	}
 		
 	/* Check new spawns and update */
 	if (getTime() - WeaponTimer > WEAPON_INTERVAL)
