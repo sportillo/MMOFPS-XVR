@@ -183,7 +183,7 @@ function Swat::Update()
 	{
 		AdvertiseTimer = getTime();
 		
-		var PDU = Vector(8);
+		var PDU = Vector(10);
 		PDU[0] = ADVERTISE_PDU;
 		PDU[1] = ID;
 		PDU[2] = Color.r;
@@ -192,6 +192,8 @@ function Swat::Update()
 		PDU[5] = Position.x;
 		PDU[6] = Position.y;
 		PDU[7] = Position.z;
+		PDU[8] = Pitch;
+		PDU[9] = Yaw;
 		
 		NetworkSend(PDU);
 	}

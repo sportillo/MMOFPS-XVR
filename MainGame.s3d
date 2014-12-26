@@ -70,7 +70,7 @@ function DisplayScoreboard()
 	ConsoleFont("Tahoma", 20);
 	
 	ConsoleColor(Level.Player.Color);
-	ConsoleText(x, y, "Player:\t\t" + str(Level.Player.Score));
+	ConsoleText(x, y, "Player " + str(Level.Player.ID) + ":\t\t" + str(Level.Player.Score));
 	
 	y -= 0.025;
 	ConsoleLines([x, y, x + 0.3, y]);
@@ -78,10 +78,9 @@ function DisplayScoreboard()
 	foreach (var e in Level.Enemies)
 	{
 		y -= 0.05;
-		i++;
 		
 		ConsoleColor(e.Color);
-		ConsoleText(x, y, "Enemy " + str(i) + ":\t" + str(e.Score));
+		ConsoleText(x, y, "Player " + str(e.ID) + ":\t\t" + str(e.Score));
 	}
 }
 
@@ -138,26 +137,34 @@ function OnInit(params)
 	OutputLN("Logging in..");
 	while (getTime() - loginTimer < LOGIN_TIMEOUT)
 	{
-		var rcv_data = NetworkRecv();
+		var data = NetworkRecv();
 		
-		if (rcv_data != void)
+		if (data != void)
 		{
 			/* No ID check, we're not sending anything yet */
 			
 			/* Receive data from existing players in the game */
-			if (rcv_data[0] == ADVERTISE_PDU && !Level.ExistID(rcv_data[1]))
+			if (data[0] == ADVERTISE_PDU)
 			{
-				var e_id  = rcv_data[1];
-				var e_col = [rcv_data[2], rcv_data[3], rcv_data[4]];
-				var e_pos = [rcv_data[5], rcv_data[6], rcv_data[7]];
+				var enemy = Level.GetByID(data[1]);
+
+				/* New player */
+				if (enemy == void)
+				{
+					OutputLN("Player " + str(data[1]) + " connected.");
+					Level.AddEnemy(Swat(data[1], [0,0,0], [0,0,0], false));
+					enemy = Level.GetByID(data[1]);
+				}
 				
-				OutputLN("Player " + str(e_id) + " detected!");
-				 
-				Level.AddEnemy(Swat(e_id, e_col, e_pos, false));
+				enemy.ID       = data[1];
+				enemy.Color    = [data[2], data[3], data[4]];
+				enemy.Position = [data[5], data[6], data[7]];
+				enemy.Pitch    = data[8];
+				enemy.Yaw      = data[9];
 				
 				/* Update player ID */
-				if (e_id >= PlayerID)
-					PlayerID = e_id + 1;
+				if (enemy.ID >= PlayerID)
+					PlayerID = enemy.ID + 1;
 			}
 		}
 		
@@ -167,7 +174,9 @@ function OnInit(params)
 	OutputLN("Login terminated!");
 	
 	/* Initialize player */
-	Level.Player = Swat(PlayerID, [1,0,0], [0, 0, 0], true);
+	var rand_col = [rand(100) / 100.0, rand(100) / 100.0, rand(100) / 100.0];
+	
+	Level.Player = Swat(PlayerID, rand_col, [0, 0, 0], true);
 	Level.Player.Level = Level; /* FIX ME */
 	Level.Player.Respawn();
 	

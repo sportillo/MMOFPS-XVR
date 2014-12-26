@@ -1,4 +1,5 @@
 #include <Weapon.s3d>
+#include <Network.s3d>
 
 SET WEAPON_INTERVAL = 5000;
 
@@ -27,6 +28,7 @@ class Scenario
 	Draw();
 	
 	AddEnemy(p);
+	GetById(pid);
 	UpdateFX(listener);
 	
 	IsColliding(x, z, radius);
@@ -156,6 +158,43 @@ function Scenario::UpdateFX(listener)
 
 function Scenario::Update()
 {
+	/* Receive network updates */
+	var more = true;
+	while (more)
+	{
+		var data = NetworkRecv();
+		
+		if (data != void)
+		{
+			if (data[1] != Player.ID)
+			{
+				/* Advertisement */
+				if (data[0] == ADVERTISE_PDU)
+				{
+					var enemy = GetById(data[1]);
+					
+					/* New player */
+					if (enemy == void)
+					{
+						OutputLN("Player " + str(data[1]) + " connected.");
+						AddEnemy(Swat(data[1], [0,0,0], [0,0,0], false));
+						enemy = GetByID(data[1]);
+					}
+					
+					enemy.ID       = data[1];
+					enemy.Color    = [data[2], data[3], data[4]];
+					enemy.Position = [data[5], data[6], data[7]];
+					enemy.Pitch    = data[8];
+					enemy.Yaw      = data[9];
+				}
+			}
+		}
+		else
+		{
+			more = false;
+		}
+	}
+	
 	/* Update players */
 	Player.Update(this);
 	
@@ -229,4 +268,13 @@ function Scenario::ExistID(pid)
 			return true;
 			
 	return false;
+}
+
+function Scenario::GetById(pid)
+{
+	foreach (var e in Enemies)
+		if (e.ID == pid)
+			return e;
+			
+	return void;
 }
