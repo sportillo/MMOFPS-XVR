@@ -201,6 +201,8 @@ function Swat::Update()
 		{
 			AdvertiseTimer = getTime();
 			
+			PDU[0] = ADVERTISE_PDU;
+			
 			NetworkSend(PDU);
 		}
 	}

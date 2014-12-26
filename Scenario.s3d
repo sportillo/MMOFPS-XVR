@@ -205,11 +205,9 @@ function Scenario::Update()
 	{
 		var e = Enemies[i];
 		
-		outputln(str(getTime()) + " " + str(e.advertisetimer));
-		
 		if (getTime() - e.AdvertiseTimer > PLAYER_TIMEOUT)
 		{
-			outputln("deleted");
+			OutputLN("Player " + str(e.ID) + " disconnected.");
 			adel(Enemies, i);
 			i--;
 		}
