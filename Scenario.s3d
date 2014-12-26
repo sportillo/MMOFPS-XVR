@@ -177,7 +177,7 @@ function Scenario::Update()
 					if (enemy == void)
 					{
 						OutputLN("Player " + str(data[1]) + " connected.");
-						AddEnemy(Swat(data[1], [0,0,0], [0,0,0], false));
+						AddEnemy(Swat(data[1], [data[2], data[3], data[4]], [0,0,0], false));
 						enemy = GetByID(data[1]);
 					}
 					

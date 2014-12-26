@@ -152,7 +152,7 @@ function OnInit(params)
 				if (enemy == void)
 				{
 					OutputLN("Player " + str(data[1]) + " connected.");
-					Level.AddEnemy(Swat(data[1], [0,0,0], [0,0,0], false));
+					Level.AddEnemy(Swat(data[1], [data[2], data[3], data[4]], [0,0,0], false));
 					enemy = Level.GetByID(data[1]);
 				}
 				
