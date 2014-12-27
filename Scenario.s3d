@@ -16,6 +16,8 @@ class Scenario
 	var WeaponCount;
 	var WeaponTimer;
 	
+	var ScoreTimer;
+	
 // Public:
 	var Width;
 	var Height;
@@ -56,6 +58,9 @@ function Scenario::Init(filename)
 	WeaponSpawns = Array(0);
 	WeaponTimer  = 0;
 	WeaponCount  = 0;
+	
+	/* Initialize timers */
+	ScoreTimer = 0;
 	
 	/* Initialize wall data structure */
 	Walls = array(height);
@@ -168,8 +173,7 @@ function Scenario::Update()
 		{
 			if (data[1] != Player.ID)
 			{
-				/* Advertisement or update (CAREFUL, they may not be the same forever! */
-				if (data[0] == ADVERTISE_PDU || data[0] == UPDATE_PDU)
+				if (data[0] == ADVERTISE_PDU)
 				{
 					var enemy = GetById(data[1]);
 					
@@ -181,13 +185,35 @@ function Scenario::Update()
 						enemy = GetByID(data[1]);
 					}
 					
-					enemy.ID       = data[1];
-					enemy.Color    = [data[2], data[3], data[4]];
-					enemy.Position = [data[5], data[6], data[7]];
-					enemy.Pitch    = data[8];
-					enemy.Yaw      = data[9];
-					
 					enemy.AdvertiseTimer = getTime();
+				}
+				else if (data[0] == MOVEMENT_PDU)
+				{
+					var enemy = GetById(data[1]);
+					
+					if (enemy != void)
+					{
+						enemy.Position = [data[2], data[3], data[4]];
+						enemy.Pitch    = data[5];
+						enemy.Yaw      = data[6];
+						
+						if (data[7] == 0)
+							enemy.IsMoving = false;
+						else
+							enemy.IsMoving = true;
+					}
+				}
+				else if (data[0] == SCORE_PDU)
+				{
+					var num = len(data) - 2;
+					
+					for (var i = 0; i < num; i += 2)
+					{
+						var e = GetById(data[i]);
+						
+						if (e != void && e.Score < data[i+1])
+							e.Score = data[i+1];
+					}
 				}
 			}
 		}
@@ -255,6 +281,28 @@ function Scenario::Update()
 				if (kill)
 					Player.Scored();
 			}
+			
+	/* Send scores */
+	if (getTime() - ScoreTimer > SCORE_TIMEOUT)
+	{
+		scoreTimer = getTime();
+		
+		var PDU = Vector((len(Enemies) * 2) + 4);
+		PDU[0] = SCORE_PDU;
+		PDU[1] = Player.ID;
+		PDU[2] = Player.ID;
+		PDU[3] = Player.Score;
+		
+		var i = 4;
+		foreach (var e in Enemies)
+		{
+			PDU[i]   = e.ID;
+			PDU[i+1] = e.Score;
+			i += 2;
+		}
+		
+		NetworkSend(PDU);
+	}
 }
 
 function Scenario::IsColliding(x, z, radius)

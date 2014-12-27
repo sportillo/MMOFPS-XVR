@@ -54,7 +54,6 @@ class Swat
 	Draw();
 	
 	ParseKeyboard();
-	ParseNetwork();
 	
 	Respawn();
 	Scored();
@@ -157,8 +156,6 @@ function Swat::Update()
 	/* Parse new events */
 	if (IsLocal)
 		ParseKeyboard();
-	else
-		ParseNetwork();
 
 	/* Update animation */
 	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
@@ -182,17 +179,19 @@ function Swat::Update()
 	if (IsLocal)
 	{
 		/* Send update */
-		var PDU = Vector(10);
-		PDU[0] = UPDATE_PDU;
+		var PDU = Vector(8);
+		PDU[0] = MOVEMENT_PDU;
 		PDU[1] = ID;
-		PDU[2] = Color.r;
-		PDU[3] = Color.g;
-		PDU[4] = Color.b;
-		PDU[5] = Position.x;
-		PDU[6] = Position.y;
-		PDU[7] = Position.z;
-		PDU[8] = Pitch;
-		PDU[9] = Yaw;
+		PDU[2] = Position.x;
+		PDU[3] = Position.y;
+		PDU[4] = Position.z;
+		PDU[5] = Pitch;
+		PDU[6] = Yaw;
+		
+		if (!IsMoving)
+			PDU[7] = 0;
+		else
+			PDU[7] = 1;
 		
 		NetworkSend(PDU);
 		
@@ -201,7 +200,12 @@ function Swat::Update()
 		{
 			AdvertiseTimer = getTime();
 			
+			var PDU = Vector(5);
 			PDU[0] = ADVERTISE_PDU;
+			PDU[1] = ID;
+			PDU[2] = Color.r;
+			PDU[3] = Color.g;
+			PDU[4] = Color.b;
 			
 			NetworkSend(PDU);
 		}
@@ -401,8 +405,3 @@ function Swat::ParseKeyboard()
 		Position = oldPosition;
 }
 
-
-function Swat::ParseNetwork()
-{
-
-}

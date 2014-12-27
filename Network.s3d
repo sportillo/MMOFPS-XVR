@@ -8,9 +8,11 @@ var BdcChannel;
 
 SET PLAYER_TIMEOUT    = 2000;
 SET ADVERTISE_TIMEOUT = 200;
+SET SCORE_TIMEOUT     = 200;
 
 SET ADVERTISE_PDU = 0;
-SET UPDATE_PDU    = 1;
+SET MOVEMENT_PDU  = 1;
+SET SCORE_PDU     = 2;
 
 /* Function declarations */
 function NetworkInit();

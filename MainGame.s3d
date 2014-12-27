@@ -156,12 +156,6 @@ function OnInit(params)
 					enemy = Level.GetByID(data[1]);
 				}
 				
-				enemy.ID       = data[1];
-				enemy.Color    = [data[2], data[3], data[4]];
-				enemy.Position = [data[5], data[6], data[7]];
-				enemy.Pitch    = data[8];
-				enemy.Yaw      = data[9];
-				
 				/* Update player ID */
 				if (enemy.ID >= PlayerID)
 					PlayerID = enemy.ID + 1;
