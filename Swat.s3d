@@ -179,7 +179,7 @@ function Swat::Update()
 	if (IsLocal)
 	{
 		/* Send update */
-		var PDU = Vector(8);
+		var PDU = Vector(9);
 		PDU[0] = MOVEMENT_PDU;
 		PDU[1] = ID;
 		PDU[2] = Position.x;
@@ -192,6 +192,8 @@ function Swat::Update()
 			PDU[7] = 0;
 		else
 			PDU[7] = 1;
+		
+		PDU[8] = CurrentFrame;
 		
 		NetworkSend(PDU);
 		

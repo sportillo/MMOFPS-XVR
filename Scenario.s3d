@@ -201,6 +201,8 @@ function Scenario::Update()
 							enemy.IsMoving = false;
 						else
 							enemy.IsMoving = true;
+							
+						enemy.CurrentFrame = data[8];
 					}
 				}
 				else if (data[0] == SCORE_PDU)

@@ -197,12 +197,16 @@ function OnFrame()
 	/* Parse commands */
 	if (KeyPressed(VK_TAB))
 		DisplayScoreboard();
-		
-	if (KeyPressed(VK_ESCAPE))
+	
+	static var esc_pressed = false;
+	if (KeyPressed(VK_ESCAPE) && !esc_pressed)
 	{
+		esc_pressed = true;
 		GrabMouse = !GrabMouse;
 		ShowCursor(!GrabMouse);
 	}
+	else
+		esc_pressed = false;
 	
 	if (KeyPressed("F"))
 		CameraFirst = true;
