@@ -236,6 +236,9 @@ function Scenario::Update()
 						b.Direction.z = data[i + 5];
 						b.IsFlying    = true;
 						
+						b.BulletObj.SetPosition(b.Position);
+						/* FIX ME: astrarre BulletObj */
+						
 						e.Bullets[j] = b;
 					}
 				}

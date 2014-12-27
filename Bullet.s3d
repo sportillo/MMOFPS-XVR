@@ -73,8 +73,10 @@ function Bullet::Update(level)
 
 
 function Bullet::Draw()
-{
+{	
 	/* Draw bullet */
 	if(IsFlying)
+	{
 		BulletObj.Draw();
+	}
 }
