@@ -225,6 +225,8 @@ function Swat::Update()
 				PDU[i + 4] = b.Direction.y;
 				PDU[i + 5] = b.Direction.z;
 			}
+			
+			NetworkSend(PDU);
 		}
 	}
 
