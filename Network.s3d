@@ -13,6 +13,7 @@ SET SCORE_TIMEOUT     = 200;
 SET ADVERTISE_PDU = 0;
 SET MOVEMENT_PDU  = 1;
 SET SCORE_PDU     = 2;
+SET BULLETS_PDU   = 3;
 
 /* Function declarations */
 function NetworkInit();

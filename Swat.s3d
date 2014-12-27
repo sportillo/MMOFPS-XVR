@@ -153,9 +153,80 @@ function Swat::Draw()
 
 function Swat::Update()
 {
-	/* Parse new events */
+	/* Actions taken only if instance of local player */
 	if (IsLocal)
+	{
+		/* Parse new events */
 		ParseKeyboard();
+		
+		/* Update bullets */
+		for (var i = 0; i < BulletNum; i++)
+		{
+			var b = Bullets[i];
+			b.Update(level);
+			
+			if (!b.IsFlying)
+			{
+				adel(Bullets, i);
+				BulletNum--;
+				i--;
+			}
+		}
+		
+		/* Advertise presence */
+		if (getTime() - AdvertiseTimer > ADVERTISE_TIMEOUT)
+		{
+			AdvertiseTimer = getTime();
+			
+			var PDU = Vector(5);
+			PDU[0] = ADVERTISE_PDU;
+			PDU[1] = ID;
+			PDU[2] = Color.r;
+			PDU[3] = Color.g;
+			PDU[4] = Color.b;
+			
+			NetworkSend(PDU);
+		}
+		
+		{
+			/* Send movement data */
+			var PDU = Vector(9);
+			PDU[0] = MOVEMENT_PDU;
+			PDU[1] = ID;
+			PDU[2] = Position.x;
+			PDU[3] = Position.y;
+			PDU[4] = Position.z;
+			PDU[5] = Pitch;
+			PDU[6] = Yaw;
+			
+			if (!IsMoving)
+				PDU[7] = 0;
+			else
+				PDU[7] = 1;
+			
+			PDU[8] = CurrentFrame;
+			
+			NetworkSend(PDU);
+		}
+		
+		{
+			/* Send bullet data */
+			var PDU = Vector((BulletNum * 6) + 2);
+			PDU[0] = BULLETS_PDU;
+			PDU[1] = ID;
+			
+			var i = 2;
+			foreach (var b in Bullets)
+			{
+				PDU[i + 0] = b.Position.x;
+				PDU[i + 1] = b.Position.y;
+				PDU[i + 2] = b.Position.z;
+				PDU[i + 3] = b.Direction.x;
+				PDU[i + 4] = b.Direction.y;
+				PDU[i + 5] = b.Direction.z;
+			}
+		}
+	}
 
 	/* Update animation */
 	if(CurrentFrame > END_FRAME) CurrentFrame = START_FRAME;
@@ -174,58 +245,6 @@ function Swat::Update()
 	FX_Jam.SetPosition(Position);
 	
 	FireObj.SetPosition(Position + [0, 1, 0]);
-	
-	/* Network stuff */
-	if (IsLocal)
-	{
-		/* Send update */
-		var PDU = Vector(9);
-		PDU[0] = MOVEMENT_PDU;
-		PDU[1] = ID;
-		PDU[2] = Position.x;
-		PDU[3] = Position.y;
-		PDU[4] = Position.z;
-		PDU[5] = Pitch;
-		PDU[6] = Yaw;
-		
-		if (!IsMoving)
-			PDU[7] = 0;
-		else
-			PDU[7] = 1;
-		
-		PDU[8] = CurrentFrame;
-		
-		NetworkSend(PDU);
-		
-		/* Adverties presence */
-		if (getTime() - AdvertiseTimer > ADVERTISE_TIMEOUT)
-		{
-			AdvertiseTimer = getTime();
-			
-			var PDU = Vector(5);
-			PDU[0] = ADVERTISE_PDU;
-			PDU[1] = ID;
-			PDU[2] = Color.r;
-			PDU[3] = Color.g;
-			PDU[4] = Color.b;
-			
-			NetworkSend(PDU);
-		}
-	}
-	
-	/* Update bullets */
-	for (var i = 0; i < BulletNum; i++)
-	{
-		var b = Bullets[i];
-		b.Update(level);
-		
-		if (!b.IsFlying)
-		{
-			adel(Bullets, i);
-			BulletNum--;
-			i--;
-		}
-	}
 }
 
 
@@ -263,7 +282,6 @@ function Swat::Hit()
 		FX_Hit.Play();
 		return false;
 	}
-	
 }
 
 
