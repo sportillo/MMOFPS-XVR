@@ -6,7 +6,6 @@ SET START_FRAME = 16;
 SET END_FRAME 	= 48;
 
 SET MAX_HEALTH  = 100;
-SET DMG_HEALTH  = 25;
 SET CLIP_SIZE   = 10;
 SET CLIP_NUM    = 9;
 SET RELOAD_TIME = 1000;
@@ -189,9 +188,9 @@ function Swat::Update()
 		}
 		
 		{
-			/* Send movement data */
-			var PDU = Vector(9);
-			PDU[0] = MOVEMENT_PDU;
+			/* Send player data */
+			var PDU = Vector(10);
+			PDU[0] = UPDATE_PDU;
 			PDU[1] = ID;
 			PDU[2] = Position.x;
 			PDU[3] = Position.y;
@@ -205,6 +204,7 @@ function Swat::Update()
 				PDU[7] = 1;
 			
 			PDU[8] = CurrentFrame;
+			PDU[9] = Health;
 			
 			NetworkSend(PDU);
 		}
@@ -269,21 +269,8 @@ function Swat::UpdateFX(listener)
 
 function Swat::Hit()
 {
-	/* Decrease health */
-	Health -= DMG_HEALTH;
-	
-	if (Health <= 0)
-	{
-		Respawn();
-		return true;
-	}
-	else
-	{
-		/* Play hit anim */
-		HitAnimLength = 30;
-		FX_Hit.Play();
-		return false;
-	}
+	HitAnimLength = 30;
+	FX_Hit.Play();
 }
 
 

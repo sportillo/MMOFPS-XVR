@@ -3,6 +3,8 @@
 
 SET WEAPON_INTERVAL = 5000;
 
+SET DMG_HEALTH  = 50;
+
 class Scenario
 {
 // Private:
@@ -187,7 +189,7 @@ function Scenario::Update()
 					
 					enemy.AdvertiseTimer = getTime();
 				}
-				else if (data[0] == MOVEMENT_PDU)
+				else if (data[0] == UPDATE_PDU)
 				{
 					var enemy = GetById(data[1]);
 					
@@ -203,6 +205,7 @@ function Scenario::Update()
 							enemy.IsMoving = true;
 							
 						enemy.CurrentFrame = data[8];
+						enemy.Health       = data[9];
 					}
 				}
 				else if (data[0] == SCORE_PDU)
@@ -240,6 +243,34 @@ function Scenario::Update()
 						/* FIX ME: astrarre BulletObj */
 						
 						e.Bullets[j] = b;
+					}
+				}
+				else if (data[0] == HIT_PDU)
+				{
+					/* If I've been hit */
+					if (data[2] == Player.ID)
+					{
+						Player.Health -= data[3];
+						
+						if (Player.Health <= 0)
+						{
+							Player.Respawn();
+							
+							var PDU = Vector(3);
+							PDU[0] = KILL_PDU;
+							PDU[1] = Player.ID;
+							PDU[2] = data[1];
+							
+							NetworkSend(PDU);
+						}
+					}
+				}
+				else if (data[0] == KILL_PDU)
+				{
+					/* I've killed someone */
+					if (data[2] == Player.ID)
+					{
+						Player.Scored();
 					}
 				}
 			}
@@ -304,9 +335,18 @@ function Scenario::Update()
 			{
 				b.IsFlying = false;
 				
-				var kill = e.Hit();
-				if (kill)
-					Player.Scored();
+				e.Hit();
+				
+				outputln("hit");
+				
+				/* Confirm hit */
+				var PDU = Vector(4);
+				PDU[0] = HIT_PDU;
+				PDU[1] = Player.ID;
+				PDU[2] = e.ID;
+				PDU[3] = DMG_HEALTH;
+				
+				NetworkSend(PDU);
 			}
 			
 	/* Send scores */
