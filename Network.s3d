@@ -3,7 +3,7 @@
 
 /* Network globals */
 SET BDC_PORT = 50023;
-SET BDC_ADDR = "192.168.1.255";
+SET BDC_ADDR = "192.168.100.255";
 var BdcChannel;
 
 SET PLAYER_TIMEOUT    = 2000;

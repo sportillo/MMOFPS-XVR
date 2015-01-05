@@ -60,11 +60,12 @@ function DisplayStatus()
 	ConsoleFont("Tahoma", 20);
 	ConsoleColor([1, 1, 0]);
 	
-	ConsoleText(0.05, 0.05, str(p.ClipCurrent) + " / " + str(p.ClipRemaining));
+	ConsoleText(0.05, 0.1, str(p.ClipCurrent) + " / " + str(p.ClipRemaining));
+	ConsoleText(0.05, 0.05, str(p.Health));
 	
 	if (p.IsReloading)
 	{
-		ConsoleFilledRect(0.05, 0.15, 0.05, 0.01);
+		ConsoleFilledRect(0.05, 0.2, 0.05, 0.01);
 	}
 }
 
@@ -201,6 +202,15 @@ function OnFrame()
 	Level.Draw();
 
 	SceneEnd();
+	
+	if (len(Level.Enemies) > 0)
+	{
+		SceneBeginRel(Level.Enemies[0].Camera, 0.8, 0.8, 0.2, 0.2);
+		
+		Level.Draw();
+		
+		SceneEnd();
+	}
 }
 
 

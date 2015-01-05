@@ -60,6 +60,7 @@ class Swat
 	Draw();
 	
 	ParseKeyboard();
+	DeadReckoning();
 	
 	Respawn();
 	Scored();
@@ -212,6 +213,7 @@ function Swat::Update()
 			PDU[5] = Pitch;
 			PDU[6] = Yaw;
 			
+			/* TODO: dead reckoning, add running check */
 			if (!IsMoving)
 				PDU[7] = 0;
 			else
@@ -242,6 +244,10 @@ function Swat::Update()
 			
 			NetworkSend(PDU);
 		}
+	}
+	else /* Remote player */
+	{
+		DeadReckoning();
 	}
 
 	/* Update animation */
@@ -432,3 +438,10 @@ function Swat::ParseKeyboard()
 		Position = oldPosition;
 }
 
+function Swat::DeadReckoning()
+{
+	Direction = [ sin(Yaw * GRAD_TO_RAD),
+				  sin(Pitch * GRAD_TO_RAD),
+				  cos(Yaw * GRAD_TO_RAD) ];
+	/* TODO */
+}
