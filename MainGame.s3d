@@ -6,9 +6,6 @@
 #include <Network.s3d>
 
 /* Set global scene parameters */
-SET SCENE_FOV  = 60;
-SET SCENE_NEAR = 0.25;
-SET SCENE_FAR  = 100;
 SET AUDIO_OPENAL = 1;
 
 /* Camera globals */
@@ -28,38 +25,9 @@ var PlayerID = 0; /* start with an invalid ID */
 var Level;
 
 /* Function declarations */
-function CameraUpdate();
 function DisplayScoreboard();
 function DisplayStatus();
 function ShowCrosshair();
-
-
-function CameraUpdate()
-{
-	var p = Level.Player.Position; 
-	var d = Level.Player.Direction;
-	
-	/* First-person camera position */	
-	p += [0, CAMERA_HEIGHT, 0];
-	
-	/* Third-person camera position */
-	if (!CameraFirst)
-	{
-		p += VectorRotate(190, [0,1,0], Level.Player.Direction) * 2.0;
-		p += [0, 0.25, 0];
-	}
-	
-	/* Update camera */
-	CameraGetCurrent().SetPosition(p);
-	CameraGetCurrent().SetDirection(d);
-	
-	/* Update sound effects */	
-	Level.UpdateFX(CameraGetCurrent());
-
-	/* Keep mouse cursor centered */
-	if (GrabMouse)
-		SetCursorPos(0.5, 0.5);
-}
 
 
 function DisplayScoreboard()
@@ -169,13 +137,12 @@ function OnInit(params)
 	
 	/* Initialize player */
 	var rand_col = [rand(100) / 100.0, rand(100) / 100.0, rand(100) / 100.0];
+	var p = Swat(PlayerID, rand_col, [0, 0, 0], true);
+	p.Level = Level;
+	p.Respawn();
 	
-	Level.Player = Swat(PlayerID, rand_col, [0, 0, 0], true);
-	Level.Player.Level = Level; /* FIX ME */
-	Level.Player.Respawn();
-	
-	/* Initialize camera */
-	CameraUpdate();
+	Level.Player = p;
+	Level.Camera = p.Camera;
 
 	/* Initialize light */
 	Light0 = CVmLight();
@@ -207,18 +174,15 @@ function OnFrame()
 	}
 	else
 		esc_pressed = false;
-	
+		
 	if (KeyPressed("F"))
-		CameraFirst = true;
+		Level.CameraFirst = true;
 		
 	if (KeyPressed("T"))
-		CameraFirst = false;
+		Level.CameraFirst = false;
 	
-	/* Update game */
+	/* Game game */
 	Level.Update();
-	
-	/* Update camera */
-	CameraUpdate();
 	
 	/* Show status */
 	DisplayStatus();
@@ -227,8 +191,12 @@ function OnFrame()
 	/* Update lights */
 	Light0.SetPosition(Level.Player.Position);
 	
+	/* Keep mouse cursor centered */
+	if (GrabMouse)
+		SetCursorPos(0.5, 0.5);
+	
 	/* Draw scene */
-	SceneBegin();
+	SceneBegin(Level.Camera);
 
 	Level.Draw();
 

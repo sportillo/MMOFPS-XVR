@@ -10,6 +10,11 @@ SET CLIP_SIZE   = 10;
 SET CLIP_NUM    = 9;
 SET RELOAD_TIME = 1000;
 
+SET CAMERA_FOV    = 60;
+SET CAMERA_NEAR   = 0.25;
+SET CAMERA_FAR    = 100;
+SET CAMERA_HEIGHT = 1.5;
+
 
 class Swat
 {
@@ -24,6 +29,8 @@ class Swat
 	var Bullets;
 	var BulletNum;
 	var ReloadTimer;
+	
+	var Camera;
 	
 	var FX_Hit;
 	var FX_Shoot;
@@ -77,6 +84,13 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
+	
+	/* Initialize camera */
+	Camera      = CVmCamera();
+	
+	Camera.SetFovY(CAMERA_FOV);
+	Camera.SetZNear(CAMERA_NEAR);
+	Camera.SetZFar(CAMERA_FAR);
 	
 	/* Initialize network */
 	AdvertiseTimer = 0;
@@ -247,6 +261,10 @@ function Swat::Update()
 	FX_Jam.SetPosition(Position);
 	
 	FireObj.SetPosition(Position + [0, 1, 0]);
+	
+	/* Update camera */
+	Camera.SetPosition(Position + [0, CAMERA_HEIGHT, 0]);
+	Camera.SetDirection(Direction);
 }
 
 
