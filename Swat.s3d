@@ -434,7 +434,7 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Check collision */
-	if (Level.IsColliding(oldPosition, Position, 0.2))
+	if (Level.IsColliding(oldPosition, Position, 0.3))
 		Position = oldPosition;
 	else
 		Position.y = Level.getWallHeight(Position);
