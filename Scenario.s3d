@@ -41,7 +41,7 @@ class Scenario
 	
 	IsColliding(pos, new_pos, radius);
 	IsBulletColliding(pos, radius);
-	
+	IsWeaponSpawnAt(pos, radius);
 	getWallHeight(pos);
 	ExistID(pid);
 };
@@ -337,7 +337,7 @@ function Scenario::Update()
 			
 			if (WeaponSpawns[loc][1] == null)
 			{
-				var w = Weapon("railgun.aam", true);
+				var w = (Rand(1) == 0) ? Weapon("railgun.aam", true) : Weapon("rocketl.aam", true);
 				w.SetSpawn(WeaponSpawns[loc][0]);
 			
 				WeaponCount++;
@@ -448,6 +448,29 @@ function Scenario::IsBulletColliding(pos, radius)
 		return true;
 	else
 		return false;
+}
+
+function Scenario::isWeaponSpawnAt(pos, radius)
+{
+	
+	foreach (var s in WeaponSpawns)
+		if (s[1] != null)
+		{
+			if (s[0].x > pos.x - radius && 
+				s[0].x < pos.x + radius &&
+			    s[0].z > pos.z - radius && 
+			    s[0].z < pos.z + radius)
+			    {
+			    	var name = s[1].name;
+			    	s[1] = null;
+					WeaponCount --;
+					return name;
+			    }
+
+		}
+
+	
+	return void;
 }
 
 function Scenario::ExistID(pid)

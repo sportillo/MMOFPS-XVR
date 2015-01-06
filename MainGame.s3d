@@ -19,7 +19,7 @@ var Light0;
 var PosL = [16.0, 10.0, 16.0];	// default light position
 
 /* Game globals */
-SET LOGIN_TIMEOUT = 2000;
+SET LOGIN_TIMEOUT = 20;
 
 var PlayerID = 103; /* start with an invalid ID */
 var Level;

@@ -4,8 +4,10 @@ class Weapon
 {
 // Private:
 	var Mesh, Object;
+
 	
 // Public:
+	var name;
 	var Position;
 	var IsAmmo;
 	
@@ -21,6 +23,7 @@ function Weapon::Weapon(name, ammo)
 	/* Initialize variables */
 	IsAmmo   = ammo;
 	Position = [0, 0, 0];
+	this.name = name;
 	
 	/* Initialize mesh */
 	Mesh   = CVmNewMesh(name);

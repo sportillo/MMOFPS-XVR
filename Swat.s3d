@@ -459,8 +459,18 @@ function Swat::ParseKeyboard()
 	else
 		Position.y = Level.getWallHeight(Position);
 
+	var weap;
+	
+	if((weap = Level.isWeaponSpawnAt(Position, 0.5)) != void)
+	{
 		
-		
+		WeaponMesh = CVmNewMesh(weap);
+		WeaponMesh.Scale(0.04);
+		WeaponObj.LinkToMesh(weaponMesh);
+		ClipRemaining = CLIP_SIZE * CLIP_NUM;
+		ClipCurrent = CLIP_SIZE;
+	}
+	
 	/* Handle fall */
 	if(oldPosition.y - Position.y > 0.5)
 	{
