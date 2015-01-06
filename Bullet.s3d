@@ -61,11 +61,8 @@ function Bullet::Update(level)
 		Traveled += modulus(Direction * Speed);
 		
 		/* Check collision with level */
-		if (Position.y < 0 || Traveled > 1000 || level.IsBulletColliding(Position.x, Position.z, 0.1))
-		   /* FIX: not working, IsColliding must take Y into account */
-		{
+		if (Position.y < 0 || Traveled > 500 || level.IsBulletColliding(Position, 0.1))
 			IsFlying = false;
-		}
 		else
 			BulletObj.SetPosition(Position);
 	}

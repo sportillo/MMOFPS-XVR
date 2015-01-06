@@ -40,7 +40,8 @@ class Scenario
 	UpdateFX(listener);
 	
 	IsColliding(pos, new_pos, radius);
-	IsBulletColliding(x, z, radius);
+	IsBulletColliding(pos, radius);
+	
 	getWallHeight(pos);
 	ExistID(pid);
 };
@@ -212,17 +213,25 @@ function Scenario::Update()
 					
 					if (enemy != void)
 					{
-						enemy.Position = [data[2], data[3], data[4]];
-						enemy.Pitch    = data[5];
-						enemy.Yaw      = data[6];
+						enemy.Position      = [data[2], data[3], data[4]];
+						enemy.WalkDirection = [data[5], data[6], data[7]];
+						enemy.Pitch         = data[8];
+						enemy.Yaw           = data[9];
 						
-						if (data[7] == 0)
+						if (data[10] == 0)
 							enemy.IsMoving = false;
-						else
+						else 
+						{
 							enemy.IsMoving = true;
 							
-						enemy.CurrentFrame = data[8];
-						enemy.Health       = data[9];
+							if (data[10] == 1)
+								enemy.IsRunning = false;
+							else
+								enemy.IsRunning = true;
+						}
+							
+						enemy.CurrentFrame = data[10];
+						enemy.Health       = data[11];
 					}
 				}
 				else if (data[0] == SCORE_PDU)
@@ -424,22 +433,20 @@ function Scenario::getWallHeight(pos)
 }
 
 
-function Scenario::IsBulletColliding(x, z, radius)
+function Scenario::IsBulletColliding(pos, radius)
 {
-	var center = [x, 0, z];
+	var x = int(pos.x);
+	var z = int(pos.z);
 	
-	var a = [int(center.x + radius), 0, int(center.z + radius)];
-	var b = [int(center.x - radius), 0, int(center.z + radius)];
-	var c = [int(center.x - radius), 0, int(center.z - radius)];
-	var d = [int(center.x + radius), 0, int(center.z - radius)];
+	if (x < 0 || x >= Width ||
+		z < 0 || z >= Height)
+		return true;
+	
+	var h = Walls[z][x];
 
-	if (Walls[a.z][a.x] == 1 ||
-		Walls[b.z][b.x] == 1 ||
-		Walls[c.z][c.x] == 1 ||
-		Walls[d.z][d.x] == 1)
+	if (h >= pos.y)
 		return true;
 	else
-
 		return false;
 }
 

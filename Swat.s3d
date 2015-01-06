@@ -45,11 +45,13 @@ class Swat
 	var Color;
 	var Position;
 	var Direction;
+	var WalkDirection;
 	var Pitch, Yaw; /* in GRAD */
 	var Score;
 	var Health;
 	var ClipCurrent, ClipRemaining;
 	var IsMoving;
+	var IsRunning;
 	var IsReloading;
 	var CanShoot;
 	var IsLocal;
@@ -75,6 +77,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Color		  = p_color;
 	Position      = p_pos;
 	Direction     = [0, 0, 0];
+	WalkDirection = [0, 0, 0];
 	Pitch     	  = 0;
 	Yaw           = 0;
 	Score		  = 0;
@@ -82,6 +85,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	ClipCurrent   = CLIP_SIZE;
 	ClipRemaining = CLIP_SIZE * CLIP_NUM;
 	IsMoving      = false;
+	IsRunning     = false;
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
@@ -204,23 +208,28 @@ function Swat::Update()
 		
 		{
 			/* Send player data */
-			var PDU = Vector(10);
+			var PDU = Vector(13);
 			PDU[0] = UPDATE_PDU;
 			PDU[1] = ID;
 			PDU[2] = Position.x;
 			PDU[3] = Position.y;
 			PDU[4] = Position.z;
-			PDU[5] = Pitch;
-			PDU[6] = Yaw;
+			PDU[5] = WalkDirection.x;
+			PDU[6] = WalkDirection.y;
+			PDU[7] = WalkDirection.z;
+			PDU[8] = Pitch;
+			PDU[9] = Yaw;
 			
 			/* TODO: dead reckoning, add running check */
-			if (!IsMoving)
-				PDU[7] = 0;
+			if (IsRunning)
+				PDU[10] = 2;
+			else if (IsMoving)
+				PDU[10] = 1;
 			else
-				PDU[7] = 1;
+				PDU[10] = 0;
 			
-			PDU[8] = CurrentFrame;
-			PDU[9] = Health;
+			PDU[11] = CurrentFrame;
+			PDU[12] = Health;
 			
 			NetworkSend(PDU);
 		}
@@ -331,18 +340,23 @@ function Swat::Respawn()
 
 function Swat::ParseKeyboard()
 {
-	static var pitch = 0;
+	//static var pitch = 0;
 	var step        = 0.05;
 	var mouseStep   = 0.2;
 	var animStep    = 0.5;
 	var oldPosition = Position;
+	var strafeDir   = [0, 0, 0];
+	var frontDir    = [0, 0, 0];
 	
 	var mouseDelta = [Mouse.DeltaX, Mouse.DeltaY];
 	
 	IsMoving  = false;
+	IsMoving  = false;
 	
 	Yaw      -= mouseDelta.X * mouseStep;
 	Pitch    -= mouseDelta.Y * mouseStep;
+	
+	WalkDirection = [0, 0, 0];
 	Direction = [ sin(Yaw * GRAD_TO_RAD),
 				  sin(Pitch * GRAD_TO_RAD),
 				  cos(Yaw * GRAD_TO_RAD) ];
@@ -350,6 +364,7 @@ function Swat::ParseKeyboard()
 	/* Shift: run */
 	if (KeyPressed(VK_SHIFT))
 	{
+		IsRunning = true;
 		step *= 3;
 		animStep *= 2;
 	}
@@ -357,15 +372,14 @@ function Swat::ParseKeyboard()
 	/* Turn right */
 	if (KeyPressed("D"))
 	{
-		Position += step * VectorRotate(-90, [0,1,0], Direction.x_z);
+		strafeDir = VectorRotate(-90, [0,1,0], Direction.x_z);
 		CurrentFrame += animStep;
 		IsMoving = true;
-	}
-		
+	}	
 	/* Turn left */
-	if (KeyPressed("A"))
+	else if (KeyPressed("A"))
 	{
-		Position += step * VectorRotate(90, [0,1,0], Direction.x_z);
+		strafeDir = VectorRotate(90, [0,1,0], Direction.x_z);
 		CurrentFrame += animStep;
 		IsMoving = true;
 	}
@@ -373,18 +387,24 @@ function Swat::ParseKeyboard()
 	/* Go forward */
 	if (KeyPressed("W"))
 	{
-		Position += step * Direction.x_z;
+		frontDir = Direction.x_z;
 		CurrentFrame += animStep;
 		IsMoving = true;
 	}
-	
 	/* Go backward */
-	if (KeyPressed("S"))
+	else if (KeyPressed("S"))
 	{
-		Position -= step * Direction.x_z;
+		frontDir = - Direction.x_z;
 		CurrentFrame -= animStep;
 		IsMoving = true;
 	}
+	
+	/* Update position */
+	WalkDirection = strafeDir + frontDir;
+	if (WalkDirection != [0, 0, 0])
+		WalkDirection = norm(WalkDirection);
+		
+	Position += step * WalkDirection;
 	
 	/* Reload */
 	if (getTime() - ReloadTimer > RELOAD_TIME)
@@ -434,7 +454,7 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Check collision */
-	if (Level.IsColliding(oldPosition, Position, 0.2))
+	if (Level.IsColliding(oldPosition, Position, 0.3))
 		Position = oldPosition;
 	else
 		Position.y = Level.getWallHeight(Position);
