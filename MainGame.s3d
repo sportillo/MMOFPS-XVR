@@ -21,7 +21,7 @@ var PosL = [16.0, 10.0, 16.0];	// default light position
 /* Game globals */
 SET LOGIN_TIMEOUT = 2000;
 
-var PlayerID = 0; /* start with an invalid ID */
+var PlayerID = 103; /* start with an invalid ID */
 var Level;
 
 /* Function declarations */
@@ -107,7 +107,6 @@ function OnInit(params)
 	while (getTime() - loginTimer < LOGIN_TIMEOUT)
 	{
 		var data = NetworkRecv();
-		
 		if (data != void)
 		{
 			/* No ID check, we're not sending anything yet */

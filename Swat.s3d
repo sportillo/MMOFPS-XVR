@@ -320,7 +320,7 @@ function Swat::Respawn()
 		var x = Rand(Level.Width - 1) + 0.5;
 		var z = Rand(Level.Height - 1) + 0.5;
 		
-		if (!Level.IsColliding(x, z, 0))
+		if (!Level.IsColliding([0,0,0], [x, 0, z], 0))
 		{
 			Position = [x, 0, z];
 			return;
@@ -434,8 +434,19 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Check collision */
-	if (Level.IsColliding(Position.x, Position.z, 0.3))
+	if (Level.IsColliding(oldPosition, Position, 0.2))
 		Position = oldPosition;
+	else
+		Position.y = Level.getWallHeight(Position);
+
+		
+		
+	/* Handle fall */
+	if(oldPosition.y - Position.y > 0.5)
+	{
+		this.Health -= int((oldPosition.y - Position.y))*5;
+	}
+		
 }
 
 function Swat::DeadReckoning()

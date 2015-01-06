@@ -1,9 +1,10 @@
 #include <Weapon.s3d>
 #include <Network.s3d>
-
+#define STEP_HEIGHT 1/3.0
 SET WEAPON_INTERVAL = 5000;
 
 SET DMG_HEALTH  = 50;
+
 
 class Scenario
 {
@@ -38,7 +39,9 @@ class Scenario
 	GetById(pid);
 	UpdateFX(listener);
 	
-	IsColliding(x, z, radius);
+	IsColliding(pos, new_pos, radius);
+	IsBulletColliding(x, z, radius);
+	getWallHeight(pos);
 	ExistID(pid);
 };
 
@@ -86,7 +89,6 @@ function Scenario::Init(filename)
 	WallMaterial.SetTexture(WallTexture);
 	FloorMaterial.Diffuse = [1, 1, 1];
 	FloorMaterial.SetTexture(FloorTexture);
-	WallMaterial.ChangeTextureParams(VR_V_TILING, 3);
 	
 	/* Initialize meshes */
 	WallMesh = CVmNewMesh(VRP_BOX);
@@ -97,7 +99,7 @@ function Scenario::Init(filename)
 	FloorMesh.Scale(width, 1, height);
 	
 	/* Apply materials */
-	WallMesh.Scale(1, 3, 1);
+	//WallMesh.Scale(1, 1, 1);
 	WallMesh.ForceMaterial(WallMaterial);
 	FloorMesh.ForceMaterial(FloorMaterial);
 	FloorMesh.ModulateMaterials(0, 1, 0, 1);
@@ -110,12 +112,20 @@ function Scenario::Init(filename)
 	for (var i = 0; i < height; i++)
 		for (var j = 0; j < width; j++)
 		{
-			if (data[i][j] == "*")
+			var h = val(data[i][j]);
+			if (h >= 1 && h <= 9)
 			{
-				Walls[i][j] = 1;
+				Walls[i][j] = h/3.0;
 				
 				/* Add wall piece */
 				var wall = CVmObj();
+				WallMaterial  = CVmMaterial();
+				WallMaterial.Diffuse = [1, 1, 1];
+				WallMaterial.SetTexture(WallTexture);
+				WallMaterial.ChangeTextureParams(VR_V_TILING, h/3.0);
+				WallMesh = CVmNewMesh(VRP_BOX);
+				WallMesh.Scale(1, h/3.0, 1);
+				WallMesh.ForceMaterial(WallMaterial);
 				wall.LinkToMesh(WallMesh);
 				wall.SetPosition(j, 0, i);
 				aadd(WallObj, wall);
@@ -391,7 +401,30 @@ function Scenario::Update()
 	}
 }
 
-function Scenario::IsColliding(x, z, radius)
+function Scenario::IsColliding(pos, new_pos, radius)
+{
+	var a = [int(new_pos.x + radius), pos.y + STEP_HEIGHT, int(new_pos.z + radius)];
+	var b = [int(new_pos.x - radius), pos.y + STEP_HEIGHT, int(new_pos.z + radius)];
+	var c = [int(new_pos.x - radius), pos.y + STEP_HEIGHT, int(new_pos.z - radius)];
+	var d = [int(new_pos.x + radius), pos.y + STEP_HEIGHT, int(new_pos.z - radius)];	
+	
+	if (Walls[a.z][a.x] > a.y ||
+		Walls[b.z][b.x] > b.y ||
+		Walls[c.z][c.x] > c.y ||
+		Walls[d.z][d.x] > d.y) 
+		return true;
+		
+	return false;
+	
+}
+
+function Scenario::getWallHeight(pos)
+{
+	return Walls[int(pos.z)][int(pos.x)];
+}
+
+
+function Scenario::IsBulletColliding(x, z, radius)
 {
 	var center = [x, 0, z];
 	
@@ -399,13 +432,14 @@ function Scenario::IsColliding(x, z, radius)
 	var b = [int(center.x - radius), 0, int(center.z + radius)];
 	var c = [int(center.x - radius), 0, int(center.z - radius)];
 	var d = [int(center.x + radius), 0, int(center.z - radius)];
-	
+
 	if (Walls[a.z][a.x] == 1 ||
 		Walls[b.z][b.x] == 1 ||
 		Walls[c.z][c.x] == 1 ||
 		Walls[d.z][d.x] == 1)
 		return true;
 	else
+
 		return false;
 }
 

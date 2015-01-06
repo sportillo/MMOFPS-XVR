@@ -32,7 +32,7 @@ function Bullet::Bullet(col)
 	IsFlying  = false;
 
 	/* Initialize mesh */
-	BulletMesh = CVmNewMesh(VRP_BOX);
+	BulletMesh = CVmNewMesh(VRP_SPHERE);
 	BulletObj  = CVmObj(BulletMesh);
 	
 	BulletMesh.Normalize(0.1);
@@ -42,7 +42,8 @@ function Bullet::Bullet(col)
 
 function Bullet::Shoot(pos, dir)
 {
-	Position  = pos; Position.y = 1;
+	Position  = pos; 
+	Position.y += 1;
 	Direction = dir;
 	Traveled  = 0;
 	IsFlying  = true;
@@ -60,8 +61,7 @@ function Bullet::Update(level)
 		Traveled += modulus(Direction * Speed);
 		
 		/* Check collision with level */
-		if (Position.y < 0 || Traveled > 1000 ||
-			level.IsColliding(Position.x, Position.z, 0.1))
+		if (Position.y < 0 || Traveled > 1000 || level.IsBulletColliding(Position.x, Position.z, 0.1))
 		   /* FIX: not working, IsColliding must take Y into account */
 		{
 			IsFlying = false;
