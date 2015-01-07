@@ -48,7 +48,6 @@ function Bullet::Bullet(col, sz, vel)
 function Bullet::Shoot(pos, dir)
 {
 	Position  = pos; 
-	Position.y += 1;
 	Direction = dir;
 	Traveled  = 0;
 	IsFlying  = true;

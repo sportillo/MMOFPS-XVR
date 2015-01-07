@@ -352,7 +352,6 @@ function Swat::SwapWeapon(id)
 	WeaponObj.RemoveChild(Weapons[CurrWeapon].Obj);
 	CurrWeapon = id;
 	WeaponObj.AddChild(Weapons[id].Obj);
-	WeaponObj.ModulateMaterials(color);
 }
 
 function Swat::ParseKeyboard()
@@ -450,7 +449,12 @@ function Swat::ParseKeyboard()
 			aadd(Bullets, b);
 			BulletNum++;	
 			
-			b.Shoot(Position, Direction);
+			var bbox = w.Mesh.SubsetGetBoundingBox(0);
+			var pos = Position + VectorRotate(Yaw, [0,1,0], [(bbox[0] + bbox[3]) / 2,
+				                                             (bbox[1] + bbox[4]) / 2,
+				                                             bbox[5]]);
+			
+			b.Shoot(pos, Direction);
 			FX_Shoot.SetFrequency(w.Frequency);
 			FX_Shoot.Play();
 		}
@@ -467,10 +471,21 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Swap weapons */
-	if (KeyPressed("1"))
+	static var changing_w = false;
+	if (KeyPressed("1") && !changing_w)
+	{
 		SwapWeapon(0);
-	else if (KeyPressed("2"))
+		changing_w = true;
+	}
+	else if (KeyPressed("2") && !changing_w)
+	{
 		SwapWeapon(1);
+		changing_w = true;
+	}
+	else if (!KeyPressed("1") && !KeyPressed("2"))
+	{
+		changing_w = false;
+	}
 	
 	/* Check collision */
 	if (Level.IsColliding(oldPosition, Position, 0.3))
