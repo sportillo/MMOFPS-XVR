@@ -14,6 +14,7 @@ class Bullet
 	var	Position;
 	var Direction;
 	var Speed;
+	var Size;
 	var IsFlying;
 	
 	
@@ -24,21 +25,22 @@ class Bullet
 };
 
 
-function Bullet::Bullet(col)
+function Bullet::Bullet(col, sz, vel)
 {
 	/* Initialize bullet variables */
 	Color     = col;
 	Position  = [0, 0, 0];
 	Direction = [0, 0, 0];
 	Traveled  = 0;
-	Speed     = BULLET_SPEED;
+	Speed     = vel;
+	Size      = sz;
 	IsFlying  = false;
 
 	/* Initialize mesh */
 	BulletMesh = CVmNewMesh(VRP_SPHERE);
 	BulletObj  = CVmObj(BulletMesh);
 	
-	BulletMesh.Normalize(0.1);
+	BulletMesh.Normalize(Size);
 	BulletMesh.ModulateMaterials(Color);
 }
 
@@ -64,7 +66,7 @@ function Bullet::Update(level)
 		Traveled += modulus(Direction * Speed);
 		
 		/* Check collision with level */
-		if (Position.y < 0 || Traveled > 500 || level.IsBulletColliding(Position, 0.1))
+		if (Position.y < 0 || Traveled > 500 || level.IsBulletColliding(Position, Size))
 			IsFlying = false;
 		else
 			BulletObj.SetPosition(Position);

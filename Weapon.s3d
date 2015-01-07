@@ -13,6 +13,8 @@ class Weapon
 	var Name;
 	var Position;
 	var Damage;
+	var Frequency;
+	var BulletSize, BulletSpeed;
 	var ClipSize, ClipNum;
 	var ClipCurrent, ClipRemaining;
 	
@@ -33,17 +35,23 @@ function Weapon::Weapon(name, ammo)
 	
 	if (name == "railgun.aam")
 	{
-		Id       = 0;
-		Damage   = 50;
-		ClipSize = 10;
-		ClipNum  = 9;
+		Id          = 0;
+		Damage      = 50;
+		ClipSize    = 10;
+		ClipNum     = 9;
+		BulletSize  = 0.1;
+		BulletSpeed = 1.0;
+		Frequency   = 25000;
 	}
 	else if (name == "rocketl.aam")
 	{
-		Id       = 1;
-		Damage   = 100;
-		ClipSize = 1;
-		ClipNum  = 5;
+		Id          = 1;
+		Damage      = 100;
+		ClipSize    = 1;
+		ClipNum     = 5;
+		BulletSize  = 0.3;
+		BulletSpeed = 0.75;
+		Frequency   = 12500;
 	}
 	
 	ClipCurrent   = ClipSize;

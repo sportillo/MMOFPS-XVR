@@ -217,7 +217,7 @@ function Swat::Update()
 		
 		{
 			/* Send player data */
-			var PDU = Vector(13);
+			var PDU = Vector(14);
 			PDU[0] = UPDATE_PDU;
 			PDU[1] = ID;
 			PDU[2] = Position.x;
@@ -239,13 +239,14 @@ function Swat::Update()
 			
 			PDU[11] = CurrentFrame;
 			PDU[12] = Health;
+			PDU[13] = CurrWeapon;
 			
 			NetworkSend(PDU);
 		}
 		
 		{
 			/* Send bullet data */
-			var PDU = Vector((BulletNum * 6) + 2);
+			var PDU = Vector((BulletNum * 8) + 2);
 			PDU[0] = BULLETS_PDU;
 			PDU[1] = ID;
 			
@@ -258,6 +259,8 @@ function Swat::Update()
 				PDU[i + 3] = b.Direction.x;
 				PDU[i + 4] = b.Direction.y;
 				PDU[i + 5] = b.Direction.z;
+				PDU[i + 6] = b.Size;
+				PDU[i + 7] = b.Speed;
 			}
 			
 			NetworkSend(PDU);
@@ -437,15 +440,18 @@ function Swat::ParseKeyboard()
 	/* Shoot */
 	if (Mouse.ButtonL && CanShoot && !IsReloading)
 	{
-		if (Weapons[CurrWeapon].ClipCurrent > 0) 
+		var w = Weapons[CurrWeapon];
+		
+		if (w.ClipCurrent > 0) 
 		{
-			Weapons[CurrWeapon].ClipCurrent--;
+			w.ClipCurrent--;
 			
-			var b = Bullet(Color);
+			var b = Bullet(Color, w.BulletSize, w.BulletSpeed);
 			aadd(Bullets, b);
 			BulletNum++;	
 			
 			b.Shoot(Position, Direction);
+			FX_Shoot.SetFrequency(w.Frequency);
 			FX_Shoot.Play();
 		}
 		else

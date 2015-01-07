@@ -4,7 +4,7 @@
 #include <Weapon.s3d>
 #include <Network.s3d>
 
-SET STEP_HEIGHT = 0.3333333;
+#define STEP_HEIGHT 1/3.0
 SET WEAPON_INTERVAL = 30000;
 
 class Scenario
@@ -233,6 +233,9 @@ function Scenario::Update()
 							
 						enemy.CurrentFrame = data[11];
 						enemy.Health       = data[12];
+						
+						if (data[13] != enemy.CurrWeapon)
+							enemy.SwapWeapon(data[13]);
 					}
 				}
 				else if (data[0] == SCORE_PDU)
@@ -250,13 +253,13 @@ function Scenario::Update()
 				else if (data[0] == BULLETS_PDU)
 				{
 					var e   = GetById(data[1]);
-					var num = (len(data) - 2) / 6;
+					var num = (len(data) - 2) / 8;
 					
 					asize(e.Bullets, num);
 					
-					for (var i = 2, j = 0; i < (num * 6); i += 6, j++)
+					for (var i = 2, j = 0; i < (num * 8); i += 8, j++)
 					{
-						var b = Bullet(e.Color);
+						var b = Bullet(e.Color, data[i+6], data[i+7]);
 						
 						b.Position.x  = data[i + 0];
 						b.Position.y  = data[i + 1];
@@ -357,7 +360,7 @@ function Scenario::Update()
 	/* Check player collision */
 	foreach (var b in Player.Bullets)
 		foreach (var e in Enemies)
-			if(distance(e.Position.x_z, b.Position.x_z) < 0.5 && 
+			if(distance(e.Position.x_z, b.Position.x_z) < (0.5 + b.Size) && 
 				((b.Position.y - e.Position.y) >= 0 &&
 				 (b.Position.y - e.Position.y) < 1.8))
 			{
