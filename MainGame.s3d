@@ -19,9 +19,9 @@ var Light0;
 var PosL = [16.0, 10.0, 16.0];	// default light position
 
 /* Game globals */
-SET LOGIN_TIMEOUT = 20;
+SET LOGIN_TIMEOUT = 2000;
 
-var PlayerID = 103; /* start with an invalid ID */
+var PlayerID = 0; /* start with an invalid ID */
 var Level;
 
 /* Function declarations */
@@ -56,11 +56,12 @@ function DisplayScoreboard()
 function DisplayStatus()
 {
 	var p = Level.Player;
+	var w = p.Weapons[p.CurrWeapon];
 	
 	ConsoleFont("Tahoma", 20);
 	ConsoleColor([1, 1, 0]);
 	
-	ConsoleText(0.05, 0.1, str(p.ClipCurrent) + " / " + str(p.ClipRemaining));
+	ConsoleText(0.05, 0.1, str(w.ClipCurrent) + " / " + str(w.ClipRemaining));
 	ConsoleText(0.05, 0.05, str(p.Health));
 	
 	if (p.IsReloading)

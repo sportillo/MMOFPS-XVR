@@ -1,13 +1,15 @@
+#ifndef SWAT_S3D
+#define SWAT_S3D
+
 #include <Bullet.s3d>
 #include <Network.s3d>
+#include <Weapon.s3d>
 
 SET ANGLE_STEP	= 1;
 SET START_FRAME = 16;
 SET END_FRAME 	= 48;
 
 SET MAX_HEALTH  = 100;
-SET CLIP_SIZE   = 10;
-SET CLIP_NUM    = 9;
 SET RELOAD_TIME = 1000;
 
 SET CAMERA_FOV    = 60;
@@ -21,9 +23,9 @@ class Swat
 // Private:
 	var Level;
 	var RootObj;
-	var UpperMesh,  UpperObj;
-	var LowerMesh,  LowerObj;
-	var WeaponMesh, WeaponObj;
+	var UpperMesh,    UpperObj;
+	var LowerMesh,    LowerObj;
+	var WeaponObj;
 	var CurrentFrame;
 	
 	var Bullets;
@@ -49,7 +51,8 @@ class Swat
 	var Pitch, Yaw; /* in GRAD */
 	var Score;
 	var Health;
-	var ClipCurrent, ClipRemaining;
+	var CurrWeapon;
+	var Weapons;
 	var IsMoving;
 	var IsRunning;
 	var IsReloading;
@@ -63,6 +66,7 @@ class Swat
 	
 	ParseKeyboard();
 	DeadReckoning();
+	SwapWeapon(id);
 	
 	Respawn();
 	Scored();
@@ -82,13 +86,18 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	Yaw           = 0;
 	Score		  = 0;
 	Health        = MAX_HEALTH;
-	ClipCurrent   = CLIP_SIZE;
-	ClipRemaining = CLIP_SIZE * CLIP_NUM;
+	CurrWeapon    = 0;
 	IsMoving      = false;
 	IsRunning     = false;
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
+	
+	/* Initialize weapons */
+	Weapons = Array(2);
+	
+	Weapons[0] = Weapon("railgun.aam", false);
+	Weapons[1] = Weapon("rocketl.aam", false);
 	
 	/* Initialize camera */
 	Camera      = CVmCamera();
@@ -123,18 +132,16 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	CurrentFrame = START_FRAME;
 	
 	/* Initialize meshes */
-	UpperMesh  = CVmNewMesh("swat_upper.aam");
-	LowerMesh  = CVmNewMesh("swat_lower.aam");
-	WeaponMesh = CVmNewMesh("railgun.aam");
+	UpperMesh    = CVmNewMesh("swat_upper.aam");
+	LowerMesh    = CVmNewMesh("swat_lower.aam");
 		
 	UpperMesh.Scale(0.04);
 	LowerMesh.Scale(0.04);
-	WeaponMesh.Scale(0.04);
 	
 	/* Initialize objects */
-	UpperObj  = CVmObj(upperMesh);
-	LowerObj  = CVmObj(lowerMesh);
-	WeaponObj = CVmObj(weaponMesh);
+	UpperObj  = CVmObj(UpperMesh);
+	LowerObj  = CVmObj(LowerMesh);
+	WeaponObj = CVmObj();
 	
 	RootObj = CVmObj();
 	RootObj.AddChild(UpperObj);
@@ -142,6 +149,8 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	RootObj.AddChild(WeaponObj);
 	
 	RootObj.ModulateMaterials(Color);
+
+	SwapWeapon(0);	
 }
 
 
@@ -319,8 +328,6 @@ function Swat::Respawn()
 	Pitch         = 0;
 	Yaw           = 0;
 	Health        = MAX_HEALTH;
-	ClipCurrent   = CLIP_SIZE;
-	ClipRemaining = CLIP_SIZE * CLIP_NUM;
 	
 	HitAnimLength = 0;
 	
@@ -337,10 +344,16 @@ function Swat::Respawn()
 	}
 }
 
+function Swat::SwapWeapon(id)
+{
+	WeaponObj.RemoveChild(Weapons[CurrWeapon].Obj);
+	CurrWeapon = id;
+	WeaponObj.AddChild(Weapons[id].Obj);
+	WeaponObj.ModulateMaterials(color);
+}
 
 function Swat::ParseKeyboard()
 {
-	//static var pitch = 0;
 	var step        = 0.05;
 	var mouseStep   = 0.2;
 	var animStep    = 0.5;
@@ -350,7 +363,7 @@ function Swat::ParseKeyboard()
 	
 	var mouseDelta = [Mouse.DeltaX, Mouse.DeltaY];
 	
-	IsMoving  = false;
+	IsRunning = false;
 	IsMoving  = false;
 	
 	Yaw      -= mouseDelta.X * mouseStep;
@@ -411,15 +424,9 @@ function Swat::ParseKeyboard()
 	{
 		IsReloading = false;
 
-		if (KeyPressed("R") && ClipCurrent != CLIP_SIZE && ClipRemaining > 0)
+		if (KeyPressed("R") && Weapons[CurrWeapon].Reload())
 		{
 			ReloadTimer = getTime();
-		
-			var tmp = ClipRemaining;
-			var toReload = CLIP_SIZE - ClipCurrent;
-			
-			ClipRemaining = (ClipRemaining > toReload) ? ClipRemaining - toReload : 0;
-			ClipCurrent = (ClipRemaining > 0) ? CLIP_SIZE : ClipCurrent + tmp;
 		}
 	}
 	else
@@ -430,9 +437,9 @@ function Swat::ParseKeyboard()
 	/* Shoot */
 	if (Mouse.ButtonL && CanShoot && !IsReloading)
 	{
-		if (ClipCurrent > 0) 
+		if (Weapons[CurrWeapon].ClipCurrent > 0) 
 		{
-			ClipCurrent--;
+			Weapons[CurrWeapon].ClipCurrent--;
 			
 			var b = Bullet(Color);
 			aadd(Bullets, b);
@@ -453,22 +460,24 @@ function Swat::ParseKeyboard()
 		CanShoot = true;
 	}
 	
+	/* Swap weapons */
+	if (KeyPressed("1"))
+		SwapWeapon(0);
+	else if (KeyPressed("2"))
+		SwapWeapon(1);
+	
 	/* Check collision */
 	if (Level.IsColliding(oldPosition, Position, 0.3))
 		Position = oldPosition;
 	else
 		Position.y = Level.getWallHeight(Position);
 
-	var weap;
-	
-	if((weap = Level.isWeaponSpawnAt(Position, 0.5)) != void)
+	var wId = Level.IsWeaponSpawnAt(Position, 0.5);	
+	if (wId >= 0)
 	{
-		
-		WeaponMesh = CVmNewMesh(weap);
-		WeaponMesh.Scale(0.04);
-		WeaponObj.LinkToMesh(weaponMesh);
-		ClipRemaining = CLIP_SIZE * CLIP_NUM;
-		ClipCurrent = CLIP_SIZE;
+		/* TODO */
+		var w = Weapons[wId];
+		w.ClipRemaining = w.ClipSize * w.ClipNum;
 	}
 	
 	/* Handle fall */
@@ -481,8 +490,28 @@ function Swat::ParseKeyboard()
 
 function Swat::DeadReckoning()
 {
+	var step     = 0.05;
+	var animStep = 0.5;
+	
 	Direction = [ sin(Yaw * GRAD_TO_RAD),
 				  sin(Pitch * GRAD_TO_RAD),
 				  cos(Yaw * GRAD_TO_RAD) ];
 	/* TODO */
+	
+	if (IsRunning)
+	{
+		step *= 3;
+		animStep *= 2;
+	}
+	
+	if (IsMoving)
+	{
+		Position += step * WalkDirection;
+		CurrentFrame += animStep;
+	}
+	
+	foreach (var b in Bullets)
+		b.Update(level);
 }
+
+#endif

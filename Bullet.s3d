@@ -1,3 +1,6 @@
+#ifndef BULLET_S3D
+#define BULLET_S3D
+
 SET BULLET_SPEED = 1.0;
 
 class Bullet
@@ -77,3 +80,5 @@ function Bullet::Draw()
 		BulletObj.Draw();
 	}
 }
+
+#endif

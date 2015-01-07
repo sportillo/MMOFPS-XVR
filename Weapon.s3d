@@ -1,15 +1,22 @@
+#ifndef WEAPON_S3D
+#define WEAPON_S3D
+
 SET ROT_SPEED = 2;
 
 class Weapon
 {
 // Private:
-	var Mesh, Object;
+	var Mesh, Obj;
 
-	
 // Public:
-	var name;
+	var Id;
+	var Name;
 	var Position;
-	var IsAmmo;
+	var Damage;
+	var ClipSize, ClipNum;
+	var ClipCurrent, ClipRemaining;
+	
+	Reload();
 	
 	Update();
 	Draw();
@@ -21,31 +28,64 @@ class Weapon
 function Weapon::Weapon(name, ammo)
 {
 	/* Initialize variables */
-	IsAmmo   = ammo;
-	Position = [0, 0, 0];
-	this.name = name;
+	Position  = [0, 0, 0];
+	this.Name = name;
+	
+	if (name == "railgun.aam")
+	{
+		Id       = 0;
+		Damage   = 50;
+		ClipSize = 10;
+		ClipNum  = 9;
+	}
+	else if (name == "rocketl.aam")
+	{
+		Id       = 1;
+		Damage   = 100;
+		ClipSize = 1;
+		ClipNum  = 5;
+	}
+	
+	ClipCurrent   = ClipSize;
+	ClipRemaining = ClipNum * ClipSize;
 	
 	/* Initialize mesh */
-	Mesh   = CVmNewMesh(name);
-	Object = CVmObj(Mesh);
+	Mesh = CVmNewMesh(name);
+	Obj  = CVmObj(Mesh);
 	
 	Mesh.Scale(0.04);
 }
 
-
 function Weapon::Update()
 {
-	Object.Rotate(ROT_SPEED, [0, 1, 0]);
+	Obj.Rotate(ROT_SPEED, [0, 1, 0]);
 }
 
 
 function Weapon::Draw()
 {
-	Object.Draw(VR_FRAMENUMBER, 0);
+	Obj.Draw(VR_FRAMENUMBER, 0);
 }
 
+function Weapon::Reload()
+{
+	if (ClipCurrent != ClipSize && ClipRemaining > 0)
+	{
+		var tmp = ClipRemaining;
+		var toReload = ClipSize - ClipCurrent;
+		
+		ClipRemaining = (ClipRemaining > toReload) ? ClipRemaining - toReload : 0;
+		ClipCurrent = (ClipRemaining > 0) ? ClipSize : ClipCurrent + tmp;
+		
+		return true;
+	}
+	
+	return false;
+}
 
 function Weapon::SetSpawn(loc)
 {
-	Object.SetPosition(loc);
+	Obj.SetPosition(loc);
 }
+
+#endif

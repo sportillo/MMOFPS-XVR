@@ -1,10 +1,11 @@
+#ifndef SCENARIO_S3D
+#define SCENARIO_S3D
+
 #include <Weapon.s3d>
 #include <Network.s3d>
-#define STEP_HEIGHT 1/3.0
-SET WEAPON_INTERVAL = 5000;
 
-SET DMG_HEALTH  = 50;
-
+SET STEP_HEIGHT = 0.3333333;
+SET WEAPON_INTERVAL = 30000;
 
 class Scenario
 {
@@ -230,8 +231,8 @@ function Scenario::Update()
 								enemy.IsRunning = true;
 						}
 							
-						enemy.CurrentFrame = data[10];
-						enemy.Health       = data[11];
+						enemy.CurrentFrame = data[11];
+						enemy.Health       = data[12];
 					}
 				}
 				else if (data[0] == SCORE_PDU)
@@ -266,7 +267,6 @@ function Scenario::Update()
 						b.IsFlying    = true;
 						
 						b.BulletObj.SetPosition(b.Position);
-						/* FIX ME: astrarre BulletObj */
 						
 						e.Bullets[j] = b;
 					}
@@ -357,7 +357,9 @@ function Scenario::Update()
 	/* Check player collision */
 	foreach (var b in Player.Bullets)
 		foreach (var e in Enemies)
-			if(distance(e.Position.x_z, b.Position.x_z) < 0.5 && b.Position.y < 1.8)
+			if(distance(e.Position.x_z, b.Position.x_z) < 0.5 && 
+				((b.Position.y - e.Position.y) >= 0 &&
+				 (b.Position.y - e.Position.y) < 1.8))
 			{
 				b.IsFlying = false;
 				
@@ -370,7 +372,7 @@ function Scenario::Update()
 				PDU[0] = HIT_PDU;
 				PDU[1] = Player.ID;
 				PDU[2] = e.ID;
-				PDU[3] = DMG_HEALTH;
+				PDU[3] = Player.Weapons[Player.CurrWeapon].Damage;
 				
 				NetworkSend(PDU);
 			}
@@ -450,7 +452,7 @@ function Scenario::IsBulletColliding(pos, radius)
 		return false;
 }
 
-function Scenario::isWeaponSpawnAt(pos, radius)
+function Scenario::IsWeaponSpawnAt(pos, radius)
 {
 	
 	foreach (var s in WeaponSpawns)
@@ -461,16 +463,15 @@ function Scenario::isWeaponSpawnAt(pos, radius)
 			    s[0].z > pos.z - radius && 
 			    s[0].z < pos.z + radius)
 			    {
-			    	var name = s[1].name;
+			    	var id = s[1].Id;
 			    	s[1] = null;
 					WeaponCount --;
-					return name;
+					
+					return id;
 			    }
-
 		}
 
-	
-	return void;
+	return -1;
 }
 
 function Scenario::ExistID(pid)
@@ -490,3 +491,5 @@ function Scenario::GetById(pid)
 			
 	return void;
 }
+
+#endif
