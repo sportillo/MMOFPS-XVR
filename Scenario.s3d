@@ -433,10 +433,10 @@ function Scenario::IsColliding(pos, new_pos, radius)
 	var c = [int(new_pos.x - radius), pos.y, int(new_pos.z - radius)];
 	var d = [int(new_pos.x + radius), pos.y, int(new_pos.z - radius)];	
 	
-	if (Walls[a.z][a.x] > a.y + STEP_HEIGHT || Walls[a.z][a.x] < a.y - STEP_HEIGHT ||
-		Walls[b.z][b.x] > b.y + STEP_HEIGHT || Walls[b.z][b.x] < b.y - STEP_HEIGHT ||
-		Walls[c.z][c.x] > c.y + STEP_HEIGHT || Walls[c.z][c.x] < c.y - STEP_HEIGHT ||
-		Walls[d.z][d.x] > d.y + STEP_HEIGHT || Walls[d.z][d.x] < d.y - STEP_HEIGHT) 
+	if (Walls[a.z][a.x] > a.y + STEP_HEIGHT ||
+		Walls[b.z][b.x] > b.y + STEP_HEIGHT ||
+		Walls[c.z][c.x] > c.y + STEP_HEIGHT ||
+		Walls[d.z][d.x] > d.y + STEP_HEIGHT) 
 		return true;
 		
 	return false;

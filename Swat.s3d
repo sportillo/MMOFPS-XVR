@@ -17,6 +17,8 @@ SET CAMERA_NEAR   = 0.25;
 SET CAMERA_FAR    = 100;
 SET CAMERA_HEIGHT = 1.5;
 
+SET GRAVITY = 0.006;
+
 
 class Swat
 {
@@ -50,12 +52,14 @@ class Swat
 	var Direction;
 	var WalkDirection;
 	var Pitch, Yaw; /* in GRAD */
+	var FallSpeed;
 	var Score;
 	var Health;
 	var CurrWeapon;
 	var Weapons;
 	var IsMoving;
 	var IsRunning;
+	var IsFalling;
 	var IsReloading;
 	var CanShoot;
 	var IsLocal;
@@ -85,11 +89,13 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	WalkDirection = [0, 0, 0];
 	Pitch     	  = 0;
 	Yaw           = 0;
+	FallSpeed     = 0;
 	Score		  = 0;
 	Health        = MAX_HEALTH;
 	CurrWeapon    = 0;
 	IsMoving      = false;
 	IsRunning     = false;
+	IsFalling     = false;
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
@@ -377,13 +383,15 @@ function Swat::ParseKeyboard()
 	Yaw      -= mouseDelta.X * mouseStep;
 	Pitch    -= mouseDelta.Y * mouseStep;
 	
-	WalkDirection = [0, 0, 0];
+	if (!IsFalling)
+		WalkDirection = [0, 0, 0];
+		
 	Direction = [ sin(Yaw * GRAD_TO_RAD),
 				  sin(Pitch * GRAD_TO_RAD),
 				  cos(Yaw * GRAD_TO_RAD) ];
 	
 	/* Shift: run */
-	if (KeyPressed(VK_SHIFT))
+	if (!IsFalling && KeyPressed(VK_SHIFT))
 	{
 		IsRunning = true;
 		step *= 3;
@@ -421,11 +429,29 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Update position */
-	WalkDirection = strafeDir + frontDir;
+	if (!IsFalling)
+		WalkDirection = strafeDir + frontDir;
+	
 	if (WalkDirection != [0, 0, 0])
 		WalkDirection = norm(WalkDirection);
 		
 	Position += step * WalkDirection;
+	
+	if (IsFalling)
+	{
+		FallSpeed -= GRAVITY;
+		Position.y += FallSpeed;
+		
+		if (Position.y <= 0)
+		{
+			Position.y = 0;
+			IsFalling = false;
+		}
+	}
+	else
+	{
+		FallSpeed = 0;
+	}
 	
 	/* Reload */
 	if (getTime() - ReloadTimer > RELOAD_TIME)
@@ -494,10 +520,12 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Check collision */
-	if (Level.IsColliding(oldPosition, Position, 0.3))
+	if (!IsFalling && Level.IsColliding(oldPosition, Position, 0.3))
 		Position = oldPosition;
-	else
+	else if (Position.y <= Level.getWallHeight(Position))
 		Position.y = Level.getWallHeight(Position);
+	else
+		IsFalling = true;
 
 	var wId = Level.IsWeaponSpawnAt(Position, 0.5);	
 	if (wId >= 0)
