@@ -14,6 +14,7 @@ class Scenario
 	var FloorMaterial, FloorTexture;
 	var WallMesh, WallObj;
 	var WallMaterial, WallTexture;
+	var SkyMesh, SkyMaterial, SkyTexture, SkyObj;
 	var Walls;
 	
 	var WeaponSpawns;
@@ -84,17 +85,25 @@ function Scenario::Init(filename)
 	/* Initialize materials */
 	WallMaterial  = CVmMaterial();
 	FloorMaterial = CVmMaterial();
-	WallTexture  = CVmTexture("Mattoni03.png");
-	FloorTexture = CVmTexture("Marmostriato2.png");
+	SkyMaterial   = CVmMaterial();
+	WallTexture  = CVmTexture("Mattoni04.png");
+	FloorTexture = CVmTexture("ground_texture.jpg");
+	SkyTexture   = CVmTexture("sky_texture.jpg");
 	
 	WallMaterial.Diffuse = [1, 1, 1];
 	WallMaterial.SetTexture(WallTexture);
 	FloorMaterial.Diffuse = [1, 1, 1];
 	FloorMaterial.SetTexture(FloorTexture);
-	
+	SkyMaterial.SetTexture(SkyTexture);
+	SkyMaterial.Diffuse = [1, 1, 1];
+	FloorMaterial.ChangeTextureParams(VR_V_TILING, 10);
+	FloorMaterial.ChangeTextureParams(VR_U_TILING, 10);
 	/* Initialize meshes */
 	WallMesh = CVmNewMesh(VRP_BOX);
 	FloorMesh = CVmNewMesh(VRP_BOX);
+	SkyMesh = CVmNewMesh(VRP_SPHERE);
+	SkyMesh.FlipNormals(true);
+	SkyMesh.Scale(100);
 	
 	/* Position floor */
 	FloorMesh.Translate(0, -1,  0);
@@ -104,11 +113,12 @@ function Scenario::Init(filename)
 	//WallMesh.Scale(1, 1, 1);
 	WallMesh.ForceMaterial(WallMaterial);
 	FloorMesh.ForceMaterial(FloorMaterial);
-	FloorMesh.ModulateMaterials(0, 1, 0, 1);
-	
+	FloorMesh.ModulateMaterials(1, 1, 1, 1);
+	SkyMesh.ForceMaterial(SkyMaterial);
 	/* Initialize objects */
 	WallObj = array(0);
 	FloorObj = CVmObj(FloorMesh);
+	SkyObj = CVmObj(SkyMesh);
 	
 	/* Parse level file */
 	for (var i = 0; i < height; i++)
@@ -145,6 +155,7 @@ function Scenario::Init(filename)
 
 function Scenario::Draw()
 {
+	SkyObj.Draw();
 	/* Draw floor */
 	FloorObj.Draw();
 	

@@ -16,8 +16,9 @@ var GrabMouse = false;
 
 /* Light globals */
 var Light0;
+var AmbientLight;
 var PosL = [16.0, 10.0, 16.0];	// default light position
-
+var AmbientPos = [0, 20, 0];
 /* Game globals */
 SET LOGIN_TIMEOUT = 2000;
 
@@ -148,8 +149,16 @@ function OnInit(params)
 	/* Initialize light */
 	Light0 = CVmLight();
 	Light0.SetPosition(PosL);
-	Light0.SetDiffuse(1, 1, 1);
+	//Light0.SetDiffuse(1, 1, 1);
+	Light0.SetParameter(GL_SPOT_EXPONENT, 30);
+	Light0.SetParameter(GL_SPOT_CUTOFF, 90);
 	Light0.Enable();
+	
+	AmbientLight = CVmLight();
+	AmbientLight.SetPosition(AmbientPos);
+	Light0.SetParameter(GL_SPOT_EXPONENT, 30);
+	AmbientLight.Enable();
+	
 	
 //	/* DEBUG: add dummies */
 //	Level.AddEnemy(Swat(1, [0,1,0], [0, 0, 0], false));
