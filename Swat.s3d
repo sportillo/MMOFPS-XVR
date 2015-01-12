@@ -13,7 +13,7 @@ SET MAX_HEALTH  = 100;
 SET RELOAD_TIME = 1000;
 
 SET CAMERA_FOV    = 60;
-SET CAMERA_NEAR   = 0.25;
+SET CAMERA_NEAR   = 0.32;
 SET CAMERA_FAR    = 300;
 SET CAMERA_HEIGHT = 1.5;
 
@@ -150,6 +150,9 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	UpperObj  = CVmObj(UpperMesh);
 	LowerObj  = CVmObj(LowerMesh);
 	WeaponObj = CVmObj();
+	
+	UpperObj.SetPivotPoint(0, 1, 0);
+	WeaponObj.SetPivotPoint(0, 1, 0);
 	
 	RootObj = CVmObj();
 	RootObj.AddChild(UpperObj);
@@ -297,6 +300,9 @@ function Swat::Update()
 	/* Update player position */
 	RootObj.SetPosition(Position);
 	RootObj.SetRotation(Yaw, [0, 1, 0]);
+	
+	UpperObj.SetRotation(Pitch, [-1, 0, 0]);
+	WeaponObj.SetRotation(Pitch, [-1, 0, 0]);
 		
 	/* Update FX position */
 	FX_Hit.SetPosition(Position);
@@ -307,7 +313,11 @@ function Swat::Update()
 	FireObj.SetPosition(Position + [0, 1, 0]);
 	
 	/* Update camera */
-	Camera.SetPosition(Position + [0, CAMERA_HEIGHT, 0]);
+	var normal = VectorRotate(-90, [0,1,0], Direction.x_z);
+	var camPos = [Position.x, 1, Position.z] +
+				 VectorRotate(Pitch, normal, [0, CAMERA_HEIGHT - 1.0, 0]);
+	
+	Camera.SetPosition(camPos);
 	Camera.SetDirection(Direction);
 }
 
@@ -387,6 +397,11 @@ function Swat::ParseKeyboard()
 	
 	Yaw      -= mouseDelta.X * mouseStep;
 	Pitch    -= mouseDelta.Y * mouseStep;
+	
+	if (Pitch >= 70)
+		Pitch = 70;
+	else if (Pitch <= -70)
+		Pitch = -70;
 	
 	if (!IsFalling)
 		WalkDirection = [0, 0, 0];
@@ -539,13 +554,6 @@ function Swat::ParseKeyboard()
 		var w = Weapons[wId];
 		w.ClipRemaining = w.ClipSize * w.ClipNum;
 	}
-	
-	/* Handle fall */
-	if(oldPosition.y - Position.y > 0.5)
-	{
-		this.Health -= int((oldPosition.y - Position.y))*5;
-	}
-		
 }
 
 function Swat::DeadReckoning()

@@ -397,8 +397,8 @@ function Scenario::Update()
 		var camPos = Camera.GetPosition();
 		var camDir = Camera.GetDirection();
 		
-		camPos += VectorRotate(190, [0,1,0], camDir) * 2.0;
 		camPos += [0, 0.25, 0];
+		camPos += VectorRotate(190, Camera.GetYAxis(), camDir) * 2.0;
 		
 		Camera.SetPosition(camPos);
 	}
