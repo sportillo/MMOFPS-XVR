@@ -402,6 +402,9 @@ function Scenario::Update()
 		
 		Camera.SetPosition(camPos);
 	}
+	
+	/* Update effects */
+	UpdateFX(Camera);
 			
 	/* Send scores */
 	if (getTime() - ScoreTimer > SCORE_TIMEOUT)

@@ -125,7 +125,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	FX_Hit        = CVmVRAWav("hit.wav", true);
 	FX_Shoot      = CVmVRAWav("shoot.wav", true);
 	FX_Jam        = CVmVRAWav("jam.wav", true);
-	FX_Step		  = CVmVRAWav("step.wav", false);
+	FX_Step		  = CVmVRAWav("step.wav", true);
 	FireBillboard = CVmBillboard("flame43.avi", 0.5, 0.5);
 	FireObj       = CVmObj();
 	HitAnimLength = 0;
@@ -308,13 +308,13 @@ function Swat::Update()
 	FX_Hit.SetPosition(Position);
 	FX_Shoot.SetPosition(Position);
 	FX_Jam.SetPosition(Position);
-	//FX_Step.SetPosition(Position);
+	FX_Step.SetPosition(Position);
 	
 	FireObj.SetPosition(Position + [0, 1, 0]);
 	
 	/* Update camera */
 	var normal = VectorRotate(-90, [0,1,0], Direction.x_z);
-	var camPos = [Position.x, 1, Position.z] +
+	var camPos = [Position.x, Position.y + 1.0, Position.z] +
 				 VectorRotate(Pitch, normal, [0, CAMERA_HEIGHT - 1.0, 0]);
 	
 	Camera.SetPosition(camPos);
@@ -336,6 +336,9 @@ function Swat::UpdateFX(listener)
 	
 	FX_Jam.SetListenerPosition(pos);
 	FX_Jam.SetListenerOrientation(-front, top);
+	
+	FX_Step.SetListenerPosition(pos);
+	FX_Step.SetListenerOrientation(-front, top);
 }
 
 
