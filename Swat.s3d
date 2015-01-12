@@ -60,6 +60,7 @@ class Swat
 	var IsMoving;
 	var IsRunning;
 	var IsFalling;
+	var IsShooting;
 	var IsReloading;
 	var CanShoot;
 	var IsLocal;
@@ -96,6 +97,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	IsMoving      = false;
 	IsRunning     = false;
 	IsFalling     = false;
+	IsShooting    = false;
 	IsReloading   = false;
 	CanShoot      = true;
 	IsLocal       = p_local;
@@ -132,9 +134,6 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	
 	FireObj.LinkToBillboard(FireBillboard);
 	FireObj.SetPosition(Position);
-	
-	var sound_pos = Position + [0, 1, 0];
-	FX_Hit.SetPosition(sound_pos);
 	
 	/* Initialize animations */
 	CurrentFrame = START_FRAME;
@@ -196,15 +195,7 @@ function Swat::Update()
 	{
 		/* Parse new events */
 		ParseKeyboard();
-		if(isRunning && !FX_Step.isPlaying())
-		{
-			FX_Step.Play();
-		}
-		else if(isMoving && !FX_Step.isPlaying() && getTime() - stepTimer > 600)
-		{
-			stepTimer = getTime();
-			FX_Step.Play();
-		} 
+		
 		/* Update bullets */
 		for (var i = 0; i < BulletNum; i++)
 		{
@@ -236,7 +227,7 @@ function Swat::Update()
 		
 		{
 			/* Send player data */
-			var PDU = Vector(14);
+			var PDU = Vector(15);
 			PDU[0] = UPDATE_PDU;
 			PDU[1] = ID;
 			PDU[2] = Position.x;
@@ -255,10 +246,15 @@ function Swat::Update()
 				PDU[10] = 1;
 			else
 				PDU[10] = 0;
+				
+			if (IsShooting)
+				PDU[11] = 1;
+			else
+				PDU[11] = 0;
 			
-			PDU[11] = CurrentFrame;
-			PDU[12] = Health;
-			PDU[13] = CurrWeapon;
+			PDU[12] = CurrentFrame;
+			PDU[13] = Health;
+			PDU[14] = CurrWeapon;
 			
 			NetworkSend(PDU);
 		}
@@ -319,6 +315,23 @@ function Swat::Update()
 	
 	Camera.SetPosition(camPos);
 	Camera.SetDirection(Direction);
+	
+	/* Play FX */
+	if (isRunning && !FX_Step.isPlaying())
+	{
+		FX_Step.Play();
+	}
+	else if (isMoving && !FX_Step.isPlaying() && getTime() - stepTimer > 600)
+	{
+		stepTimer = getTime();
+		FX_Step.Play();
+	} 
+	
+	if (IsShooting)
+	{
+		FX_Shoot.SetFrequency(Weapons[CurrWeapon].Frequency);
+		FX_Shoot.Play();
+	}
 }
 
 
@@ -492,6 +505,7 @@ function Swat::ParseKeyboard()
 	}
 	
 	/* Shoot */
+	IsShooting = false;
 	if (Mouse.ButtonL && CanShoot && !IsReloading)
 	{
 		var w = Weapons[CurrWeapon];
@@ -509,9 +523,8 @@ function Swat::ParseKeyboard()
 				                                             (bbox[1] + bbox[4]) / 2,
 				                                             bbox[5]]);
 			
+			IsShooting = true;
 			b.Shoot(pos, Direction);
-			FX_Shoot.SetFrequency(w.Frequency);
-			FX_Shoot.Play();
 		}
 		else
 		{

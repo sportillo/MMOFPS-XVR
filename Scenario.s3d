@@ -241,12 +241,17 @@ function Scenario::Update()
 							else
 								enemy.IsRunning = true;
 						}
-							
-						enemy.CurrentFrame = data[11];
-						enemy.Health       = data[12];
+						
+						if (data[11] == 1)
+							enemy.IsShooting = true;
+						else
+							enemy.IsShooting = false;
+						
+						enemy.CurrentFrame = data[12];
+						enemy.Health       = data[13];
 						
 						if (data[13] != enemy.CurrWeapon)
-							enemy.SwapWeapon(data[13]);
+							enemy.SwapWeapon(data[14]);
 					}
 				}
 				else if (data[0] == SCORE_PDU)
@@ -291,6 +296,7 @@ function Scenario::Update()
 					if (data[2] == Player.ID)
 					{
 						Player.Health -= data[3];
+						Player.Hit();
 						
 						if (Player.Health <= 0)
 						{
