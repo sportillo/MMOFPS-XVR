@@ -42,7 +42,7 @@ class Swat
 	var HitAnimLength;
 	
 	var AdvertiseTimer;
-
+	var StepTimer;
 // Public:
 	var Id;
 	var Color;
@@ -109,7 +109,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	
 	/* Initialize network */
 	AdvertiseTimer = 0;
-	
+	StepTimer = 0;
 	/* Initialize bullets */
 	BulletNum    = 0;
 	Bullets      = Array(0);
@@ -187,10 +187,15 @@ function Swat::Update()
 	{
 		/* Parse new events */
 		ParseKeyboard();
-		if(isMoving && !FX_Step.isPlaying())
+		if(isRunning && !FX_Step.isPlaying())
 		{
 			FX_Step.Play();
 		}
+		else if(isMoving && !FX_Step.isPlaying() && getTime() - stepTimer > 600)
+		{
+			stepTimer = getTime();
+			FX_Step.Play();
+		} 
 		/* Update bullets */
 		for (var i = 0; i < BulletNum; i++)
 		{
