@@ -4,7 +4,7 @@
 #include <Weapon.s3d>
 #include <Network.s3d>
 
-#define STEP_HEIGHT 1/3.0
+#define STEP_HEIGHT 1/2.9
 SET WEAPON_INTERVAL = 30000;
 
 class Scenario
@@ -103,7 +103,7 @@ function Scenario::Init(filename)
 	FloorMesh = CVmNewMesh(VRP_BOX);
 	SkyMesh = CVmNewMesh(VRP_SPHERE);
 	SkyMesh.FlipNormals(true);
-	SkyMesh.Scale(100);
+	SkyMesh.Scale(200);
 	
 	/* Position floor */
 	FloorMesh.Translate(0, -1,  0);
