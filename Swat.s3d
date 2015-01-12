@@ -37,6 +37,7 @@ class Swat
 	var FX_Hit;
 	var FX_Shoot;
 	var FX_Jam;
+	var FX_Step;
 	var FireBillboard, FireObj;
 	var HitAnimLength;
 	
@@ -118,6 +119,7 @@ function Swat::Swat(p_id, p_color, p_pos, p_local)
 	FX_Hit        = CVmVRAWav("hit.wav", true);
 	FX_Shoot      = CVmVRAWav("shoot.wav", true);
 	FX_Jam        = CVmVRAWav("jam.wav", true);
+	FX_Step		  = CVmVRAWav("step.wav", false);
 	FireBillboard = CVmBillboard("flame43.avi", 0.5, 0.5);
 	FireObj       = CVmObj();
 	HitAnimLength = 0;
@@ -185,7 +187,10 @@ function Swat::Update()
 	{
 		/* Parse new events */
 		ParseKeyboard();
-		
+		if(isMoving && !FX_Step.isPlaying())
+		{
+			FX_Step.Play();
+		}
 		/* Update bullets */
 		for (var i = 0; i < BulletNum; i++)
 		{
@@ -286,6 +291,7 @@ function Swat::Update()
 	FX_Hit.SetPosition(Position);
 	FX_Shoot.SetPosition(Position);
 	FX_Jam.SetPosition(Position);
+	//FX_Step.SetPosition(Position);
 	
 	FireObj.SetPosition(Position + [0, 1, 0]);
 	
